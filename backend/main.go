@@ -63,9 +63,11 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Store the user in the MongoDB collection
 		_, err = userCollection.InsertOne(context.TODO(), bson.M{
-			"name":           user.Username,
-			"email":          user.Email,
-			"password":       user.Password,
+			"username":  user.Username,
+			"firstName": user.FirstName,
+			"lastName":  user.LastName,
+			"email":     user.Email,
+			"password":  user.Password,
 		})
 		if err != nil {
 			http.Error(w, "Error inserting user into database", http.StatusInternalServerError)
