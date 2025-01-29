@@ -1,4 +1,4 @@
-module commercey-api
+module messeji-api
 
 go 1.20
 

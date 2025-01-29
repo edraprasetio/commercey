@@ -8,8 +8,11 @@ const FormContainer = styled.form`
 `
 
 export const SignUp = () => {
+    const [userCheck, setUserCheck] = useState(false)
     const [formData, setFormData] = useState({
-        name: '',
+        username: '',
+        firstName: '',
+        lastName: '',
         email: '',
         password: '',
         confirmPassword: '',
@@ -40,6 +43,7 @@ export const SignUp = () => {
 
             if (response.ok) {
                 console.log('User created:', data)
+                setUserCheck(true)
                 // Handle success (redirect, display success message, etc.)
             } else {
                 console.error('Error:', data)
@@ -51,36 +55,53 @@ export const SignUp = () => {
     }
 
     return (
-        <FormContainer onSubmit={handleSubmit}>
-            <input
-                type='text'
-                name='name'
-                placeholder='Full Name'
-                value={formData.name}
-                onChange={handleChange}
-            />
-            <input
-                type='email'
-                name='email'
-                placeholder='Email'
-                value={formData.email}
-                onChange={handleChange}
-            />
-            <input
-                type='password'
-                name='password'
-                placeholder='Password'
-                value={formData.password}
-                onChange={handleChange}
-            />
-            <input
-                type='password'
-                name='confirmPassword'
-                placeholder='Confirm Password'
-                value={formData.confirmPassword}
-                onChange={handleChange}
-            />
-            <button type='submit'>Sign Up</button>
-        </FormContainer>
+        <div>
+            <FormContainer onSubmit={handleSubmit}>
+                <input
+                    type='text'
+                    name='username'
+                    placeholder='User Name'
+                    value={formData.username}
+                    onChange={handleChange}
+                />
+                <input
+                    type='text'
+                    name='firstName'
+                    placeholder='First Name'
+                    value={formData.firstName}
+                    onChange={handleChange}
+                />
+                <input
+                    type='text'
+                    name='lastName'
+                    placeholder='Last Name'
+                    value={formData.lastName}
+                    onChange={handleChange}
+                />
+                <input
+                    type='email'
+                    name='email'
+                    placeholder='Email'
+                    value={formData.email}
+                    onChange={handleChange}
+                />
+                <input
+                    type='password'
+                    name='password'
+                    placeholder='Password'
+                    value={formData.password}
+                    onChange={handleChange}
+                />
+                <input
+                    type='password'
+                    name='confirmPassword'
+                    placeholder='Confirm Password'
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                />
+                <button type='submit'>Sign Up</button>
+            </FormContainer>
+            {userCheck && <div>User Created</div>}
+        </div>
     )
 }
