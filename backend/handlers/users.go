@@ -44,3 +44,44 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 }
+
+func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		// Get the MongoDB users collection
+		collection := database.GetCollection("users")
+
+		// Query to fetch all users
+		cursor, err := collection.Find(context.TODO(), bson.M{})
+		if err != nil {
+			http.Error(w, "Error fetching users from the database", http.StatusInternalServerError)
+			return
+		}
+		defer cursor.Close(context.TODO())
+
+		// Declare a slice to hold all users
+		var users []models.User
+
+		// Iterate through the cursor and decode each document into a user struct
+		for cursor.Next(context.TODO()) {
+			var user models.User
+			if err := cursor.Decode(&user); err != nil {
+				http.Error(w, "Error decoding user data", http.StatusInternalServerError)
+				return
+			}
+			users = append(users, user)
+		}
+
+		// Check for any errors during cursor iteration
+		if err := cursor.Err(); err != nil {
+			http.Error(w, "Error iterating over users", http.StatusInternalServerError)
+			return
+		}
+
+		// Send the users as a JSON response
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(users)
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
