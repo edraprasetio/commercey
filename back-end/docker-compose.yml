@@ -5,7 +5,7 @@ services:
     build: .
     container_name: go-backend
     ports:
-      - "5000:5000" # Map the backend port 5000 on your host to the container's port
+      - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017
     depends_on:
@@ -15,7 +15,7 @@ services:
     image: mongo:latest
     container_name: mongo
     ports:
-      - "27017:27017" # Expose MongoDB port to the host
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
 
