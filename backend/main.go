@@ -1,6 +1,7 @@
 package main
 
 import (
+	"commercey-api/models"
 	"context"
 	"encoding/json"
 	"log"
@@ -12,13 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type User struct {
-	Name           string `json:"name"`
-	Email          string `json:"email"`
-	Password       string `json:"password"`
-	ConfirmPassword string `json:"confirmPassword"`
-}
 
 var mongoClient *mongo.Client
 var userCollection *mongo.Collection
@@ -58,7 +52,7 @@ func closeMongo() {
 // SignUpHandler handles user sign-up and stores user in MongoDB
 func signUpHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		var user User
+		var user models.User
 
 		// Decode the incoming JSON request body into the user struct
 		err := json.NewDecoder(r.Body).Decode(&user)
@@ -69,10 +63,9 @@ func signUpHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Store the user in the MongoDB collection
 		_, err = userCollection.InsertOne(context.TODO(), bson.M{
-			"name":           user.Name,
+			"name":           user.Username,
 			"email":          user.Email,
 			"password":       user.Password,
-			"confirmPassword": user.ConfirmPassword,
 		})
 		if err != nil {
 			http.Error(w, "Error inserting user into database", http.StatusInternalServerError)
