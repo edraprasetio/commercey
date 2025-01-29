@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom'
 import { Home } from './Home'
 import { Practice } from './Practice'
+import { SignIn } from './SignIn'
+import { SignUp } from './SignUp'
 
 const Main = () => (
     <Routes>
@@ -17,6 +19,22 @@ const Main = () => (
             element={
                 <>
                     <Practice />
+                </>
+            }
+        ></Route>
+        <Route
+            path='/signin'
+            element={
+                <>
+                    <SignIn />
+                </>
+            }
+        ></Route>
+        <Route
+            path='/signup'
+            element={
+                <>
+                    <SignUp />
                 </>
             }
         ></Route>
