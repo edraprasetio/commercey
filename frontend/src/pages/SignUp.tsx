@@ -1,14 +1,46 @@
 import { useState } from 'react'
 import styled from '@emotion/styled'
+import { Heading32, SubHeading14, SubHeading16 } from '../styles/typography'
+import title from '../assets/icons/Title - large.svg'
+import CustomInput from '../components/atoms/input'
+import { BlueButton } from '../components/atoms/button'
+import { SimpleLink } from '../components/atoms/link'
 
 const FormContainer = styled.form`
     display: flex;
-    width: 400px;
+    width: 320px;
     flex-direction: column;
+    align-items: center;
+    gap: 8px;
+`
+const TitleIcon = styled.img`
+    height: 30px;
+    width: 72px;
+`
+
+const TitleWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+`
+
+const MainContainer = styled.div`
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    gap: 32px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-top: 56px;
+    padding-bottom: 56px;
 `
 
 export const SignUp = () => {
     const [userCheck, setUserCheck] = useState(false)
+    const [hasError, setHasError] = useState(true)
+    const [errors, setErrors] = useState<{ [key: string]: string }>({})
     const [formData, setFormData] = useState({
         username: '',
         firstName: '',
@@ -55,53 +87,69 @@ export const SignUp = () => {
     }
 
     return (
-        <div>
+        <MainContainer>
+            <TitleWrapper>
+                <TitleIcon src={title} />
+                <Heading32>Sign Up</Heading32>
+            </TitleWrapper>
+
             <FormContainer onSubmit={handleSubmit}>
-                <input
+                <CustomInput
+                    label='Username'
+                    message=''
                     type='text'
                     name='username'
-                    placeholder='User Name'
                     value={formData.username}
                     onChange={handleChange}
                 />
-                <input
+                <CustomInput
+                    label='First name'
                     type='text'
                     name='firstName'
-                    placeholder='First Name'
                     value={formData.firstName}
                     onChange={handleChange}
                 />
-                <input
+                <CustomInput
+                    label='Last name'
                     type='text'
                     name='lastName'
-                    placeholder='Last Name'
                     value={formData.lastName}
                     onChange={handleChange}
                 />
-                <input
+                <CustomInput
+                    status={hasError ? 'error' : ''}
+                    label='Email Address'
                     type='email'
                     name='email'
-                    placeholder='Email'
                     value={formData.email}
                     onChange={handleChange}
+                    message={hasError ? 'Email is already used' : ''}
                 />
-                <input
+                <CustomInput
+                    label='Password'
                     type='password'
                     name='password'
-                    placeholder='Password'
                     value={formData.password}
                     onChange={handleChange}
                 />
-                <input
+                <CustomInput
+                    label='Confirm Password'
                     type='password'
                     name='confirmPassword'
-                    placeholder='Confirm Password'
                     value={formData.confirmPassword}
                     onChange={handleChange}
                 />
-                <button type='submit'>Sign Up</button>
+                <BlueButton style={{ marginTop: '24px' }} type='submit'>
+                    <SubHeading16>SIGN UP ACCOUNT</SubHeading16>
+                </BlueButton>
             </FormContainer>
+            <p style={{ color: '#666464' }}>
+                <SubHeading14>
+                    Already have an account?{' '}
+                    <SimpleLink to='/signin'>Sign in here.</SimpleLink>
+                </SubHeading14>
+            </p>
             {userCheck && <div>User Created</div>}
-        </div>
+        </MainContainer>
     )
 }
