@@ -98,7 +98,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 			},
 		}).Decode(&user)
 		if err != nil {
-			errors["username"] = "No username is found"
+			errors["username"] = "No username found"
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusConflict)
 			json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
