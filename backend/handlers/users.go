@@ -91,7 +91,12 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Check if username doesn't exist
 		var user models.User
-		err = collection.FindOne(context.TODO(), bson.M{"email": u.Email}).Decode(&user)
+		err = collection.FindOne(context.TODO(), bson.M{
+			"$or": []bson.M{
+				{"username": u.Username},
+				{"email": u.Username},
+			},
+		}).Decode(&user)
 		if err != nil {
 			errors["username"] = "No username is found"
 			w.Header().Set("Content-Type", "application/json")
@@ -130,7 +135,6 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		// Get the MongoDB users collection
 		collection := database.GetCollection("users")
 
 		// Query to fetch all users
@@ -169,26 +173,24 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func DeleteAllUsersHandler(w http.ResponseWriter, r *http.Request) {
-// 	if r.Method != http.MethodDelete {
-// 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-// 		return
-// 	}
+func DeleteAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 
-// 	collection := database.GetCollection("users")
+	collection := database.GetCollection("users")
 
-// 	result, err := collection.DeleteMany(context.TODO(), bson.M{})
-// 	if err != nil {
-// 		http.Error(w, "Failed to delete users", http.StatusInternalServerError)
-// 		return
-// 	}
+	// Delete all users
+	result, err := collection.DeleteMany(context.TODO(), bson.M{})
+	if err != nil {
+		http.Error(w, "Failed to delete users", http.StatusInternalServerError)
+		return
+	}
 
-// 	// Return success response
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	json.NewEncoder(w).Encode(map[string]interface{}{
-// 		"message":    "All users deleted successfully",
-// 		"deletedCount": result.DeletedCount,
-// 	})
-
-// }
+	// Return response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": fmt.Sprintf("%d users deleted", result.DeletedCount),
+	})
+}
