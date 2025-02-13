@@ -107,7 +107,7 @@ export const SignIn = () => {
             <p style={{ color: '#666464' }}>
                 <SubHeading14>
                     Don&apos;t have an account yet?{' '}
-                    <SimpleLink to='/signin'>Sign up here.</SimpleLink>
+                    <SimpleLink to='/signup'>Sign up here.</SimpleLink>
                 </SubHeading14>
             </p>
         </MainContainer>

@@ -26,6 +26,11 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 		collection := database.GetCollection("users")
 
+		if user.Username == "" {
+			errors["username"] = "Username is required"
+		}
+
+
 		if user.Email == "" {
 			errors["email"] = "Email is required"
 		} else if !isValidEmail(user.Email) {
@@ -41,6 +46,16 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var existingUser models.User
+
+		err = collection.FindOne(context.TODO(), bson.M{"username": user.Username}).Decode(&existingUser)
+		if err == nil {
+			errors["username"] = "Username is taken"
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+			return
+		}
+
 		err = collection.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existingUser)
 		if err == nil {
 			errors["email"] = "Email is already in use"

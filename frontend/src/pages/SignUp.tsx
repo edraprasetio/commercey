@@ -33,13 +33,12 @@ const MainContainer = styled.div`
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding-top: 56px;
-    padding-bottom: 56px;
+    padding-top: 80px;
+    padding-bottom: 80px;
 `
 
 export const SignUp = () => {
     const [userCheck, setUserCheck] = useState(false)
-    const [hasError, setHasError] = useState(false)
     const [errors, setErrors] = useState<{ [key: string]: string }>({})
     const [formData, setFormData] = useState({
         username: '',
@@ -52,6 +51,7 @@ export const SignUp = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
+        setErrors({})
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -90,12 +90,13 @@ export const SignUp = () => {
 
             <FormContainer onSubmit={handleSubmit}>
                 <CustomInput
+                    status={errors.username ? 'error' : ''}
                     label='Username'
-                    message=''
                     type='text'
                     name='username'
                     value={formData.username}
                     onChange={handleChange}
+                    message={errors.username || ''}
                 />
                 <CustomInput
                     label='First name'
