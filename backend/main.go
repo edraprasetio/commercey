@@ -17,6 +17,7 @@ func main() {
 	// Create a new router and apply the CORS middleware
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/signup", handlers.SignUpHandler)
+	mux.HandleFunc("/api/signin", handlers.SignInHandler)
 	mux.HandleFunc("/api/users", handlers.GetAllUsersHandler)
 
 	// Configure CORS to allow requests from your React app

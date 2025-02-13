@@ -39,7 +39,7 @@ const MainContainer = styled.div`
 
 export const SignUp = () => {
     const [userCheck, setUserCheck] = useState(false)
-    const [hasError, setHasError] = useState(true)
+    const [hasError, setHasError] = useState(false)
     const [errors, setErrors] = useState<{ [key: string]: string }>({})
     const [formData, setFormData] = useState({
         username: '',
@@ -50,9 +50,6 @@ export const SignUp = () => {
         confirmPassword: '',
     })
 
-    // const [error, setError] = useState('')
-
-    // keeps data synced in user's perspective
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
@@ -60,9 +57,7 @@ export const SignUp = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // API call starts here
         try {
-            // Send data to the Go API
             const response = await fetch('http://localhost:5000/api/signup', {
                 method: 'POST',
                 headers: {
@@ -76,10 +71,10 @@ export const SignUp = () => {
             if (response.ok) {
                 console.log('User created:', data)
                 setUserCheck(true)
-                // Handle success (redirect, display success message, etc.)
+                setErrors({})
             } else {
                 console.error('Error:', data)
-                // Handle error (display error message)
+                setErrors(data.errors || {})
             }
         } catch (error) {
             console.error('Request failed', error)
@@ -117,13 +112,13 @@ export const SignUp = () => {
                     onChange={handleChange}
                 />
                 <CustomInput
-                    status={hasError ? 'error' : ''}
+                    status={errors.email ? 'error' : ''}
                     label='Email Address'
                     type='email'
                     name='email'
                     value={formData.email}
                     onChange={handleChange}
-                    message={hasError ? 'Email is already used' : ''}
+                    message={errors.email || ''}
                 />
                 <CustomInput
                     label='Password'

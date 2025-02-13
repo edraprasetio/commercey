@@ -3,27 +3,53 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"messeji-api/database"
 	"messeji-api/models"
 	"net/http"
+	"regexp"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-// SignUpHandler handles the user sign-up process
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var user models.User
 
-		// Decode the incoming JSON request body into the user struct
 		err := json.NewDecoder(r.Body).Decode(&user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		// Store the user in the MongoDB collection
+		errors := make(map[string]string)
+
 		collection := database.GetCollection("users")
+
+		if user.Email == "" {
+			errors["email"] = "Email is required"
+		} else if !isValidEmail(user.Email) {
+			fmt.Println(user.Email)
+			errors["email"] = "Invalid email format"
+		}
+
+		if len(errors) > 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+			return
+		}
+
+		var existingUser models.User
+		err = collection.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existingUser)
+		if err == nil {
+			errors["email"] = "Email is already in use"
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+			return
+		}
+
 		_, err = collection.InsertOne(context.TODO(), bson.M{
 			"username":  user.Username,
 			"firstName": user.FirstName,
@@ -36,10 +62,67 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Send a response back to the client
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+
+}
+
+func isValidEmail(email string) bool {
+	re := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	return re.MatchString(email)
+}
+
+func SignInHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		var u models.User
+		err := json.NewDecoder(r.Body).Decode(&u)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		errors := make(map[string]string)
+
+		collection := database.GetCollection("users")
+
+		// Check if username doesn't exist
+		var user models.User
+		err = collection.FindOne(context.TODO(), bson.M{"email": u.Email}).Decode(&user)
+		if err != nil {
+			errors["username"] = "No username is found"
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+			return
+		}
+
+		if u.Password != user.Password {
+			errors["password"] = "Password is incorrect"
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		response := map[string]interface{}{
+			"user": map[string]string{
+				"username":   user.Username,
+				"first_name": user.FirstName,
+				"last_name":  user.LastName,
+				"email":      user.Email,
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -85,3 +168,27 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 }
+
+// func DeleteAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+// 	if r.Method != http.MethodDelete {
+// 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+// 		return
+// 	}
+
+// 	collection := database.GetCollection("users")
+
+// 	result, err := collection.DeleteMany(context.TODO(), bson.M{})
+// 	if err != nil {
+// 		http.Error(w, "Failed to delete users", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	// Return success response
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.WriteHeader(http.StatusOK)
+// 	json.NewEncoder(w).Encode(map[string]interface{}{
+// 		"message":    "All users deleted successfully",
+// 		"deletedCount": result.DeletedCount,
+// 	})
+
+// }
