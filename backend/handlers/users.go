@@ -7,6 +7,7 @@ import (
 	"messeji-api/database"
 	"messeji-api/models"
 	passwordhashing "messeji-api/passwordHashing"
+	"messeji-api/utils"
 	"net/http"
 	"regexp"
 
@@ -80,9 +81,20 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		token, err := utils.GenerateToken(user.Username)
+		if err != nil {
+			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+			return
+		}
+
+		response := map[string]interface{}{
+			"message": "User created successfully",
+			"token": token,
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(response)
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
@@ -136,6 +148,12 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 
+		token, err := utils.GenerateToken(user.Username)
+		if err != nil {
+			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+			return
+		}
+
 		response := map[string]interface{}{
 			"user": map[string]string{
 				"username":   user.Username,
@@ -143,6 +161,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 				"last_name":  user.LastName,
 				"email":      user.Email,
 			},
+			"token": token,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
