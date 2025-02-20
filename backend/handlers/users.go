@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"messeji-api/database"
 	"messeji-api/models"
+	passwordhashing "messeji-api/passwordHashing"
 	"net/http"
 	"regexp"
 
@@ -65,12 +66,14 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		hash, _ := passwordhashing.HashPassword(user.Password)
+
 		_, err = collection.InsertOne(context.TODO(), bson.M{
 			"username":  user.Username,
 			"firstName": user.FirstName,
 			"lastName":  user.LastName,
 			"email":     user.Email,
-			"password":  user.Password,
+			"password":  hash,
 		})
 		if err != nil {
 			http.Error(w, "Error inserting user into database", http.StatusInternalServerError)
@@ -112,6 +115,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 				{"email": u.Username},
 			},
 		}).Decode(&user)
+
 		if err != nil {
 			errors["username"] = "No username found"
 			w.Header().Set("Content-Type", "application/json")
@@ -120,7 +124,9 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if u.Password != user.Password {
+		match := passwordhashing.VerifyPassword(u.Password, user.Password)
+
+		if !match {
 			errors["password"] = "Password is incorrect"
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusConflict)
