@@ -13,13 +13,7 @@ import (
 func main() {
 	// Initialize MongoDB
 	database.InitMongo()
-	defer database.CloseMongo() // Ensure MongoDB connection is closed on app shutdown
-
-	// mux := http.NewServeMux()
-	// mux.HandleFunc("/api/signup", handlers.SignUpHandler)
-	// mux.HandleFunc("/api/signin", handlers.SignInHandler)
-	// mux.HandleFunc("/api/users", handlers.GetAllUsersHandler)
-	// mux.HandleFunc("/api/users", handlers.DeleteAllUsersHandler)
+	defer database.CloseMongo()
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/signup", handlers.SignUpHandler).Methods("POST")
