@@ -15,6 +15,8 @@ func main() {
 	database.InitMongo()
 	defer database.CloseMongo()
 
+	database.InitRedis()
+
 	router := mux.NewRouter()
 	router.HandleFunc("/api/signup", handlers.SignUpHandler).Methods("POST")
 	router.HandleFunc("/api/signin", handlers.SignInHandler).Methods("POST")
