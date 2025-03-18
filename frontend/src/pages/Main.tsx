@@ -7,7 +7,7 @@ import { SignUp } from './SignUp'
 const Main = () => (
     <Routes>
         <Route
-            path='/home'
+            path='/:username'
             element={
                 <>
                     <Home />

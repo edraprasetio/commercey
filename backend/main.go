@@ -29,6 +29,7 @@ func main() {
 		AllowedOrigins: []string{"http://localhost:3000"}, // Allow React app's origin
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders: []string{"Content-Type"},
+		AllowCredentials: true,
 	})
 
 	// Start the server with CORS middleware applied

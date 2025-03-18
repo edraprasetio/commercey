@@ -9,12 +9,15 @@ import (
 	passwordhashing "messeji-api/passwordHashing"
 	"messeji-api/utils"
 	"net/http"
+	"os"
 	"regexp"
 	"time"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+var ctx = context.Background()
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
@@ -161,22 +164,35 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// redisClient := database.RedisClient
-		response := map[string]interface{}{
-			"user": map[string]string{
-				"username":   user.Username,
-				"first_name": user.FirstName,
-				"last_name":  user.LastName,
-				"email":      user.Email,
-			},
-			"token": token,
+		redisClient := database.RedisClient
+		userData := map[string]interface{}{
+			"username":  user.Username,
+			"email":     user.Email,
+			"firstName": user.FirstName,
+			"lastName":  user.LastName,
+			"token":     token,
 		}
 
-		// redisClient.HSet.(ctx, )
+		redisClient.HSet(ctx, "user:"+user.Username, userData)
+		redisClient.Expire(ctx, "user:"+user.Username, 2*time.Hour)
 
-		w.Header().Set("Content-Type", "application/json")
+
+		http.SetCookie(w, &http.Cookie{
+			Name: "jwt",
+			Value: token,
+			HttpOnly: true,
+			Secure: os.Getenv("ENV") == "production",
+			SameSite: http.SameSiteLaxMode,
+			Path: "/",
+			Expires: time.Now().Add(2 * time.Hour),
+		})
+
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+
+		// w.Header().Set("Content-Type", "application/json")
+		// w.WriteHeader(http.StatusOK)
+		// json.NewEncoder(w).Encode(response)
 
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -184,29 +200,43 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		var u models.User
-		collection := database.GetCollection("users")
+	cookie, err := r.Cookie("jwt")
+    if err != nil {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
 
-		cursor, err := collection.Find(context.TODO(), bson.M{})
-		if err != nil {
-			http.Error(w, "Error fetching users from the database", http.StatusInternalServerError)
-			return
-		}
-		defer cursor.Close(context.TODO())
+    username, err := utils.GetUsernameFromToken(cookie.Value)
+    if err != nil {
+        http.Error(w, "Invalid token", http.StatusUnauthorized)
+        return
+    }
 
-		var user models.User
-		err = collection.FindOne(context.TODO(), bson.M{
-			"$or": []bson.M{
-				{"username": u.Username},
-				{"email": u.Username},
-			},
-		}).Decode(&user)
+	fmt.Println(username)
 
+    redisClient := database.RedisClient
+    userData, err := redisClient.HGetAll(ctx, "user:"+username).Result()
+    if err != nil || len(userData) == 0 {
+        http.Error(w, "User not found", http.StatusNotFound)
+        return
+    }
 
-	} else {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-	}
+    // If userData contains JSON string, unmarshal it
+    var user models.User // Assuming you have a `User` struct
+    userJSON, err := json.Marshal(userData)
+    if err != nil {
+        http.Error(w, "Error processing user data", http.StatusInternalServerError)
+        return
+    }
+
+    err = json.Unmarshal(userJSON, &user)
+    if err != nil {
+        http.Error(w, "Error unmarshalling user data", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(user)
 }
 
 func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
@@ -242,6 +272,17 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    "jwt",
+		Value:   "",
+		Expires: time.Unix(0, 0),
+		Path:    "/",
+	})
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
 }
 
 func DeleteAllUsersHandler(w http.ResponseWriter, r *http.Request) {
