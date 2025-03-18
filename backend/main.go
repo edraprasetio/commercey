@@ -20,6 +20,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/signup", handlers.SignUpHandler).Methods("POST")
 	router.HandleFunc("/api/signin", handlers.SignInHandler).Methods("POST")
+	router.HandleFunc("/api/user", handlers.GetUserHandler).Methods("GET")
 	router.HandleFunc("/api/users", handlers.GetAllUsersHandler).Methods("GET")
 	router.HandleFunc("/api/users", handlers.DeleteAllUsersHandler).Methods("DELETE")
 

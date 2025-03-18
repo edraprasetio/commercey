@@ -12,10 +12,10 @@ import (
 var RedisClient *redis.Client
 
 func InitRedis() {
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "redis:6379"
-	}
+	// redisAddr := os.Getenv("REDIS_ADDR")
+	// if redisAddr == "" {
+	// 	redisAddr = "redis:6379"
+	// }
 
 	RedisClient = redis.NewClient(&redis.Options{
 		Addr: os.Getenv("REDIS_ADDR"),

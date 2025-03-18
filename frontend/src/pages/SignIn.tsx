@@ -64,6 +64,7 @@ export const SignIn = () => {
 
             if (response.ok) {
                 console.log('User signed in:', data)
+                console.log(data.token)
                 setErrors({})
             } else {
                 console.error('Error:', data)
@@ -101,7 +102,7 @@ export const SignIn = () => {
                     message={errors.password || ''}
                 />
                 <BlueButton style={{ marginTop: '24px' }} type='submit'>
-                    <SubHeading16>SIGN UP ACCOUNT</SubHeading16>
+                    <SubHeading16>SIGN IN</SubHeading16>
                 </BlueButton>
             </FormContainer>
             <p style={{ color: '#666464' }}>

@@ -10,7 +10,9 @@ import (
 	"messeji-api/utils"
 	"net/http"
 	"regexp"
+	"time"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -87,6 +89,11 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		sessionID := uuid.New().String()
+
+		ctx := context.TODO()
+		database.RedisClient.Set(ctx, "session:"+sessionID, token, 2*time.Hour)
+
 		response := map[string]interface{}{
 			"message": "User created successfully",
 			"token": token,
@@ -154,6 +161,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// redisClient := database.RedisClient
 		response := map[string]interface{}{
 			"user": map[string]string{
 				"username":   user.Username,
@@ -164,9 +172,37 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 			"token": token,
 		}
 
+		// redisClient.HSet.(ctx, )
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response)
+
+	} else {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
+
+func GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		var u models.User
+		collection := database.GetCollection("users")
+
+		cursor, err := collection.Find(context.TODO(), bson.M{})
+		if err != nil {
+			http.Error(w, "Error fetching users from the database", http.StatusInternalServerError)
+			return
+		}
+		defer cursor.Close(context.TODO())
+
+		var user models.User
+		err = collection.FindOne(context.TODO(), bson.M{
+			"$or": []bson.M{
+				{"username": u.Username},
+				{"email": u.Username},
+			},
+		}).Decode(&user)
+
 
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
