@@ -20,9 +20,16 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/signup", handlers.SignUpHandler).Methods("POST")
 	router.HandleFunc("/api/signin", handlers.SignInHandler).Methods("POST")
+	router.HandleFunc("/api/signout", handlers.SignOutHandler).Methods("POST")
+	
 	router.HandleFunc("/api/user", handlers.GetUserHandler).Methods("GET")
 	router.HandleFunc("/api/users", handlers.GetAllUsersHandler).Methods("GET")
 	router.HandleFunc("/api/users", handlers.DeleteAllUsersHandler).Methods("DELETE")
+
+	router.HandleFunc("/api/friend/request", handlers.SendFriendRequest).Methods("POST")
+	router.HandleFunc("/api/friend/accept", handlers.AcceptFriendRequest).Methods("POST")
+	router.HandleFunc("/api/friend/reject", handlers.RejectFriendRequest).Methods("POST")
+	router.HandleFunc("/api/friend/list", handlers.GetFriends).Methods("GET")
 
 	// Configure CORS to allow requests from your React app
 	corsHandler := cors.New(cors.Options{

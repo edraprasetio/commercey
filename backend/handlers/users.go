@@ -15,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var ctx = context.Background()
@@ -221,8 +222,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // If userData contains JSON string, unmarshal it
-    var user models.User // Assuming you have a `User` struct
+    var user models.User
     userJSON, err := json.Marshal(userData)
     if err != nil {
         http.Error(w, "Error processing user data", http.StatusInternalServerError)
@@ -274,7 +274,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func SignOutHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    "jwt",
 		Value:   "",
@@ -305,4 +305,135 @@ func DeleteAllUsersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": fmt.Sprintf("%d users deleted", result.DeletedCount),
 	})
+}
+
+func SendFriendRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := context.TODO()
+	var request struct {
+		Username     string `json:"username"`
+		TargetFriend string `json:"target_friend"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Find the target user
+	usersCollection := database.GetCollection("users")
+	var targetUser models.User
+	err := usersCollection.FindOne(ctx, bson.M{"username": request.TargetFriend}).Decode(&targetUser)
+	if err == mongo.ErrNoDocuments {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	// Add friend request if not already in the list
+	for _, pending := range targetUser.PendingRequests {
+		if pending == request.Username {
+			http.Error(w, "Request already sent", http.StatusConflict)
+			return
+		}
+	}
+
+	_, err = usersCollection.UpdateOne(ctx,
+		bson.M{"username": request.TargetFriend},
+		bson.M{"$push": bson.M{"pending_requests": request.Username}},
+	)
+
+	if err != nil {
+		http.Error(w, "Error sending request", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Friend request sent"})
+}
+
+func AcceptFriendRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := context.TODO()
+	var request struct {
+		Username     string `json:"username"`
+		AcceptedUser string `json:"accepted_user"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	usersCollection := database.GetCollection("users")
+
+	_, err := usersCollection.UpdateOne(ctx,
+		bson.M{"username": request.Username},
+		bson.M{
+			"$pull": bson.M{"pending_requests": request.AcceptedUser},
+			"$push": bson.M{"friends": request.AcceptedUser},
+		},
+	)
+
+	if err != nil {
+		http.Error(w, "Error moving accepted user to friends array", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = usersCollection.UpdateOne(ctx,
+		bson.M{"username": request.AcceptedUser},
+		bson.M{"$push": bson.M{"friends": request.Username}},
+	)
+
+	if err != nil {
+		http.Error(w, "Error accepting request", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Friend request accepted"})
+}
+
+func RejectFriendRequest(w http.ResponseWriter, r *http.Request) {
+	ctx := context.TODO()
+	var request struct {
+		Username      string `json:"username"`
+		RejectedUser  string `json:"rejected_user"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	usersCollection := database.GetCollection("users")
+
+	// Remove from pending requests
+	_, err := usersCollection.UpdateOne(ctx,
+		bson.M{"username": request.Username},
+		bson.M{"$pull": bson.M{"pending_requests": request.RejectedUser}},
+	)
+
+	if err != nil {
+		http.Error(w, "Error rejecting request", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Friend request rejected"})
+}
+
+func GetFriends(w http.ResponseWriter, r *http.Request) {
+	ctx := context.TODO()
+	username := r.URL.Query().Get("username")
+
+	usersCollection := database.GetCollection("users")
+	var user models.User
+
+	fmt.Println("Fetching friends for username:", username)
+
+	err := usersCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&user)
+	if err == nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(user.Friends)
 }
