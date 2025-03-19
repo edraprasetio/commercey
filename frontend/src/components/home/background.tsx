@@ -5,8 +5,6 @@ export const HomeBackground = styled.div`
     height: 100vh;
     background-color: #fcfcfc;
     display: flex;
-    flex-direction: column;
-    gap: 32px;
-    justify-content: center;
-    align-items: center;
+    justify-content: start;
+    align-items: start;
 `

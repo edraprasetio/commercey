@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { HomeBackground } from '../components/home/background'
 import { BlueButton } from '../components/atoms/button'
+import { Navbar } from '../components/atoms/navbar'
 
-export const Home = () => {
+export const Chats = () => {
     const { username } = useParams()
     const [user, setUser] = useState<{ username: string } | null>(null)
 
@@ -51,6 +52,7 @@ export const Home = () => {
 
     return (
         <HomeBackground>
+            <Navbar />
             Username is {user ? user.username : 'Loading...'}
             <BlueButton onClick={handleLogout} style={{ width: '400px' }}>
                 LOG OUT
