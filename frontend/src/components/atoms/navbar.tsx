@@ -1,6 +1,6 @@
 import styled from '@emotion/styled'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import chatIcon from '../../assets/icons/chatsIcon.svg'
 import friendsIcon from '../../assets/icons/usersIcon.svg'
 import userIcon from '../../assets/icons/userIcon.svg'
@@ -74,6 +74,8 @@ export const Navbar = () => {
         lastName: string
     } | null>(null)
 
+    const location = useLocation()
+
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -103,11 +105,11 @@ export const Navbar = () => {
         try {
             const response = await fetch('http://localhost:5000/api/signout', {
                 method: 'POST',
-                credentials: 'include', // Ensure cookies are included
+                credentials: 'include',
             })
 
             if (response.ok) {
-                navigate('/signin') // Redirect to sign-in page
+                navigate('/signin')
             } else {
                 console.error('Logout failed')
             }
@@ -126,11 +128,24 @@ export const Navbar = () => {
                     marginTop: '32px',
                 }}
             >
-                <ItemContainer>
+                <ItemContainer
+                    className={
+                        location.pathname === `/${username}/chats` ? 'set' : ''
+                    }
+                    onClick={() => navigate(`/${username}/chats`)}
+                >
                     <IconWrapper src={chatIcon} />{' '}
                     <SubHeading14>Chats</SubHeading14>
                 </ItemContainer>
-                <ItemContainer>
+
+                <ItemContainer
+                    className={
+                        location.pathname === `/${username}/friends`
+                            ? 'set'
+                            : ''
+                    }
+                    onClick={() => navigate(`/${username}/friends`)}
+                >
                     <IconWrapper src={friendsIcon} />
                     <SubHeading14>Friends</SubHeading14>
                 </ItemContainer>

@@ -34,8 +34,6 @@ const MainContainer = styled.div`
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding-top: 16px;
-    padding-bottom: 16px;
 `
 
 export const SignIn = () => {
@@ -80,8 +78,8 @@ export const SignIn = () => {
 
                 if (userResponse.ok) {
                     const userData = await userResponse.json()
-                    console.log('User data from Redis:', userData)
-                    navigate(`/${userData.username}`)
+                    console.log('User data from Mongo:', userData)
+                    navigate(`/${userData.username}/chats`)
                 } else {
                     console.error('Failed to fetch user data:', userResponse)
                 }

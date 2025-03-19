@@ -3,14 +3,23 @@ import { Practice } from './Practice'
 import { SignIn } from './SignIn'
 import { SignUp } from './SignUp'
 import { Chats } from './Chats'
+import { Friends } from './Friends'
 
 const Main = () => (
     <Routes>
         <Route
-            path='/:username'
+            path='/:username/chats'
             element={
                 <>
                     <Chats />
+                </>
+            }
+        ></Route>
+        <Route
+            path='/:username/friends'
+            element={
+                <>
+                    <Friends />
                 </>
             }
         ></Route>
