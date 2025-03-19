@@ -213,30 +213,50 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-	fmt.Println(username)
+    collection := database.GetCollection("users")
 
-    redisClient := database.RedisClient
-    userData, err := redisClient.HGetAll(ctx, "user:"+username).Result()
-    if err != nil || len(userData) == 0 {
-        http.Error(w, "User not found", http.StatusNotFound)
-        return
-    }
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-    var user models.User
-    userJSON, err := json.Marshal(userData)
-    if err != nil {
-        http.Error(w, "Error processing user data", http.StatusInternalServerError)
-        return
-    }
+	// Query MongoDB for user
+	var user models.User
+	err = collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Server error", http.StatusInternalServerError)
+		return
+	}
 
-    err = json.Unmarshal(userJSON, &user)
-    if err != nil {
-        http.Error(w, "Error unmarshalling user data", http.StatusInternalServerError)
-        return
-    }
+	var friendsList []bson.M
+	if len(user.Friends) > 0 {
+		cursor, err := collection.Find(ctx, bson.M{"username": bson.M{"$in": user.Friends}})
+		if err != nil {
+			http.Error(w, "Error fetching friends", http.StatusInternalServerError)
+			return
+		}
+		defer cursor.Close(ctx)
+
+		if err = cursor.All(ctx, &friendsList); err != nil {
+			http.Error(w, "Error processing friends data", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// Create response with full friend names
+	response := map[string]interface{}{
+		"username":        user.Username,
+		"email":           user.Email,
+		"firstName":       user.FirstName,
+		"lastName":        user.LastName,
+		"friends":         friendsList, // Full friend objects instead of just usernames
+		"pendingRequests": user.PendingRequests,
+	}
 
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(user)
+    json.NewEncoder(w).Encode(response)
 }
 
 func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {

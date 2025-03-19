@@ -28,6 +28,13 @@ export const SubHeading14 = styled.div`
     letter-spacing: 1px;
 `
 
+export const SubTitle14 = styled.div`
+    font-family: Roboto-Medium;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+`
+
 export const SubHeading16 = styled.div`
     font-family: Roboto-Regular;
     font-size: 16px;

@@ -1,9 +1,10 @@
 import styled from '@emotion/styled'
 import { Navbar } from '../components/atoms/navbar'
 import { HomeBackground } from '../components/home/background'
-import { Heading32 } from '../styles/typography'
+import { Heading32, SubHeading14, SubTitle14 } from '../styles/typography'
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import userIcon from '../assets/icons/userIcon.svg'
 
 const MainContainer = styled.div`
     margin: 32px 16px;
@@ -11,10 +12,24 @@ const MainContainer = styled.div`
     flex-direction: column;
 `
 
+const FriendContainer = styled.li`
+    display: flex;
+    width: 240px;
+    gap: 24px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    align-items: center;
+    position: relative;
+    color: ${(props) => props.theme.primaryColor.black[1]};
+    &:hover {
+        background-color: rgba(176, 176, 188, 0.4);
+    }
+`
+
 export const Friends = () => {
     const { username } = useParams()
     const [user, setUser] = useState<{
-        friends: string[]
+        friends: { username: string; firstName: string; lastName: string }[]
     } | null>(null)
 
     useEffect(() => {
@@ -28,7 +43,8 @@ export const Friends = () => {
                 if (response.ok) {
                     const data = await response.json()
                     setUser(data)
-                    console.log(user)
+                } else {
+                    console.error('Failed to fetch user')
                 }
             } catch (error) {
                 console.error('Error fetching user:', error)
@@ -44,8 +60,20 @@ export const Friends = () => {
             <Navbar />
             <MainContainer>
                 <Heading32>Friends</Heading32>
-                {username}
-                {user ? user.friends : ''}
+                <ul>
+                    {user?.friends?.length ? (
+                        user.friends.map((friend, index) => (
+                            <FriendContainer key={index}>
+                                <img src={userIcon} />
+                                <SubTitle14>
+                                    {friend.firstName} {friend.lastName}
+                                </SubTitle14>
+                            </FriendContainer>
+                        ))
+                    ) : (
+                        <p>No friends yet</p>
+                    )}
+                </ul>
             </MainContainer>
         </HomeBackground>
     )
