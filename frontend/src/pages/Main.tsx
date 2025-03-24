@@ -4,6 +4,7 @@ import { SignIn } from './SignIn'
 import { SignUp } from './SignUp'
 import { Chats } from './Chats'
 import { Friends } from './Friends'
+import { Settings } from './Settings'
 
 const Main = () => (
     <Routes>
@@ -20,6 +21,14 @@ const Main = () => (
             element={
                 <>
                     <Friends />
+                </>
+            }
+        ></Route>
+        <Route
+            path='/:username/settings'
+            element={
+                <>
+                    <Settings />
                 </>
             }
         ></Route>

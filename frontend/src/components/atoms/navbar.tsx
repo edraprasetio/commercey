@@ -7,6 +7,7 @@ import userIcon from '../../assets/icons/userIcon.svg'
 import line from '../../assets/icons/line.svg'
 import logOut from '../../assets/icons/logOutIcon.svg'
 import settings from '../../assets/icons/settingsIcon.svg'
+import addFriend from '../../assets/icons/addFriendIcon.svg'
 import { SubHeading14 } from '../../styles/typography'
 
 const MainContainer = styled.div`
@@ -16,7 +17,7 @@ const MainContainer = styled.div`
     flex-direction: column;
     justify-content: space-between;
     padding: 0px 16px;
-    border-right: 2px solid ${(props) => props.theme.primaryColor.grey[2]};
+    border-right: 2px solid ${(props) => props.theme.primaryColor.grey[3]};
 `
 const ItemContainer = styled.div`
     display: flex;
@@ -149,6 +150,18 @@ export const Navbar = () => {
                     <IconWrapper src={friendsIcon} />
                     <SubHeading14>Friends</SubHeading14>
                 </ItemContainer>
+
+                <ItemContainer
+                    className={
+                        location.pathname === `/${username}/addfriend`
+                            ? 'set'
+                            : ''
+                    }
+                    onClick={() => navigate(`/${username}/friends`)}
+                >
+                    <IconWrapper src={addFriend} />
+                    <SubHeading14>Add Friend</SubHeading14>
+                </ItemContainer>
             </div>
             <ItemContainer
                 style={{ marginBottom: '32px' }}
@@ -163,7 +176,9 @@ export const Navbar = () => {
                 </SubHeading14>
                 {isPopupVisible && (
                     <Popup>
-                        <ItemContainer>
+                        <ItemContainer
+                            onClick={() => navigate(`/${username}/settings`)}
+                        >
                             <IconWrapper src={settings} />
                             <SubHeading14>Settings</SubHeading14>
                         </ItemContainer>
