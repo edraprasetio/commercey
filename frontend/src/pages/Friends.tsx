@@ -5,6 +5,7 @@ import { Heading32, SubHeading14, SubTitle14 } from '../styles/typography'
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import userIcon from '../assets/icons/userIcon.svg'
+import { useAuth } from '../utils'
 
 const MainContainer = styled.div`
     margin: 32px 16px;
@@ -27,6 +28,8 @@ const FriendContainer = styled.li`
 `
 
 export const Friends = () => {
+    useAuth()
+
     const { username } = useParams()
     const [user, setUser] = useState<{
         friends: { username: string; firstName: string; lastName: string }[]

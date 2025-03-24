@@ -88,7 +88,7 @@ export const Navbar = () => {
                 if (response.ok) {
                     const data = await response.json()
                     setUser(data)
-                    console.log(user)
+                    // console.log(user)
                 }
             } catch (error) {
                 console.error('Error fetching user:', error)
@@ -157,7 +157,7 @@ export const Navbar = () => {
                             ? 'set'
                             : ''
                     }
-                    onClick={() => navigate(`/${username}/friends`)}
+                    onClick={() => navigate(`/${username}/addfriend`)}
                 >
                     <IconWrapper src={addFriend} />
                     <SubHeading14>Add Friend</SubHeading14>

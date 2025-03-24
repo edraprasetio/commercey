@@ -245,6 +245,21 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var pendingList []bson.M
+	if len(user.PendingRequests) > 0 {
+		cursor, err := collection.Find(ctx, bson.M{"username": bson.M{"$in": user.PendingRequests}})
+		if err != nil {
+			http.Error(w, "Error fetching pending list", http.StatusInternalServerError)
+			return
+		}
+		defer cursor.Close(ctx)
+
+		if err = cursor.All(ctx, &pendingList); err != nil {
+			http.Error(w, "Error processing pending list data", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	// Create response with full friend names
 	response := map[string]interface{}{
 		"username":        user.Username,
@@ -252,7 +267,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		"firstName":       user.FirstName,
 		"lastName":        user.LastName,
 		"friends":         friendsList, // Full friend objects instead of just usernames
-		"pendingRequests": user.PendingRequests,
+		"pendingRequests": pendingList,
 	}
 
     w.Header().Set("Content-Type", "application/json")

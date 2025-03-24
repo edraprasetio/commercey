@@ -5,6 +5,7 @@ import { BlueButton } from '../components/atoms/button'
 import { Navbar } from '../components/atoms/navbar'
 import { Heading32 } from '../styles/typography'
 import styled from '@emotion/styled'
+import { useAuth } from '../utils'
 
 const MainContainer = styled.div`
     margin: 32px 16px;
@@ -13,6 +14,8 @@ const MainContainer = styled.div`
 `
 
 export const Chats = () => {
+    useAuth()
+
     return (
         <HomeBackground>
             <Navbar />

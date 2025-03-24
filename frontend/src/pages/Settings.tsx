@@ -6,6 +6,7 @@ import { Navbar } from '../components/atoms/navbar'
 import { Heading20, Heading32, SubHeading14 } from '../styles/typography'
 import styled from '@emotion/styled'
 import CustomInput from '../components/atoms/input'
+import { useAuth } from '../utils'
 
 const MainContainer = styled.div`
     margin: 32px 16px;
@@ -22,6 +23,8 @@ const FormContainer = styled.form`
 `
 
 export const Settings = () => {
+    useAuth()
+
     const [errors, setErrors] = useState<{ [key: string]: string }>({})
     const [usernameForm, setUsernameForm] = useState({
         newUsername: '',

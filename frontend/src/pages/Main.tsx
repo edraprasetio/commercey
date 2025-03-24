@@ -5,6 +5,7 @@ import { SignUp } from './SignUp'
 import { Chats } from './Chats'
 import { Friends } from './Friends'
 import { Settings } from './Settings'
+import { AddFriend } from './AddFriend'
 
 const Main = () => (
     <Routes>
@@ -21,6 +22,14 @@ const Main = () => (
             element={
                 <>
                     <Friends />
+                </>
+            }
+        ></Route>
+        <Route
+            path='/:username/addfriend'
+            element={
+                <>
+                    <AddFriend />
                 </>
             }
         ></Route>

@@ -35,3 +35,14 @@ export const BlueButton = styled(BaseButton)`
         background-color: ${(props) => props.theme.primaryColor.blue[2]};
     }
 `
+
+export const ClearButton = styled(BaseButton)`
+    width: 100%;
+    background-color: unset;
+    color: ${(props) => props.theme.primaryColor.black[1]};
+    border: 2px solid ${(props) => props.theme.primaryColor.grey[2]};
+    padding: 2px 16px;
+    &:hover {
+        background-color: ${(props) => props.theme.primaryColor.grey[2]};
+    }
+`
