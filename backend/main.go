@@ -26,6 +26,8 @@ func main() {
 	router.HandleFunc("/api/users", handlers.GetAllUsersHandler).Methods("GET")
 	router.HandleFunc("/api/users", handlers.DeleteAllUsersHandler).Methods("DELETE")
 
+	router.HandleFunc("/api/user/change-password", handlers.ChangePasswordHandler).Methods("PUT")
+
 	router.HandleFunc("/api/friend/request", handlers.SendFriendRequest).Methods("POST")
 	router.HandleFunc("/api/friend/accept", handlers.AcceptFriendRequest).Methods("POST")
 	router.HandleFunc("/api/friend/reject", handlers.RejectFriendRequest).Methods("POST")

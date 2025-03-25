@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { HomeBackground } from '../components/home/background'
 import { BlueButton } from '../components/atoms/button'
@@ -25,6 +25,42 @@ const FormContainer = styled.form`
 export const Settings = () => {
     useAuth()
 
+    const { username } = useParams()
+    const [user, setUser] = useState<{
+        username: string
+        pendingRequests: {
+            username: string
+            firstName: string
+            lastName: string
+        }[]
+    } | null>(null)
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await fetch(`http://localhost:5000/api/user`, {
+                    method: 'GET',
+                    credentials: 'include',
+                })
+
+                if (response.ok) {
+                    const data = await response.json()
+                    console.log(data)
+                    setUser(data)
+                    console.log(user?.pendingRequests)
+                } else {
+                    console.error('Failed to fetch user')
+                }
+            } catch (error) {
+                console.error('Error fetching user:', error)
+            }
+        }
+
+        if (username) {
+            fetchUser()
+        }
+    }, [username])
+
     const [errors, setErrors] = useState<{ [key: string]: string }>({})
     const [usernameForm, setUsernameForm] = useState({
         newUsername: '',
@@ -41,6 +77,40 @@ export const Settings = () => {
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value })
+    }
+
+    const handlePassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        console.log(user?.username)
+        console.log(passwordForm.oldPassword)
+        console.log(passwordForm.newPassword)
+        try {
+            const response = await fetch(
+                'http://localhost:5000/api/user/change-password',
+                {
+                    method: 'PUT', // Changed from POST to PUT
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: user?.username,
+                        old_password: passwordForm.oldPassword,
+                        new_password: passwordForm.newPassword,
+                    }),
+                }
+            )
+
+            if (response.ok) {
+                console.log('Password changed successfully')
+                setErrors({}) // Clear errors
+            } else {
+                const errorData = await response.json() // Attempt to parse JSON
+                console.error('Error:', errorData)
+                setErrors(errorData.errors || {}) // Handle errors from the backend
+                console.log(errors.old_password)
+            }
+        } catch (error) {
+            console.error('Unexpected error:', error)
+        }
     }
 
     return (
@@ -83,7 +153,7 @@ export const Settings = () => {
                         <SubHeading14>SAVE CHANGES</SubHeading14>
                     </BlueButton>
                 </FormContainer>
-                <FormContainer>
+                <FormContainer onSubmit={handlePassword}>
                     <div
                         style={{
                             display: 'flex',
@@ -97,22 +167,22 @@ export const Settings = () => {
                             Change Password
                         </Heading20>
                         <CustomInput
-                            status={errors.oldPassword ? 'error' : ''}
+                            status={errors.old_password ? 'error' : ''}
                             label='Old Password'
                             type='password'
                             name='oldPassword'
                             value={passwordForm.oldPassword}
                             onChange={handlePasswordChange}
-                            message={errors.oldPassword || ''}
+                            message={errors.old_password || ''}
                         />
                         <CustomInput
-                            status={errors.newPassword ? 'error' : ''}
+                            status={errors.new_password ? 'error' : ''}
                             label='New Password'
                             type='password'
                             name='newPassword'
                             value={passwordForm.newPassword}
                             onChange={handlePasswordChange}
-                            message={errors.newPassword || ''}
+                            message={errors.new_password || ''}
                         />
                     </div>
 

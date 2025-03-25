@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var ctx = context.Background()
@@ -318,6 +319,91 @@ func SignOutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
+}
+
+func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	ctx := context.TODO()
+	
+	var req struct {
+		Username     string `json:"username"`
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+	
+	err := json.NewDecoder(r.Body).Decode(&req)
+
+	// Decode request body
+
+	if err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
+
+	// Get MongoDB collection
+	errors := make(map[string]string)
+
+	collection := database.GetCollection("users")
+
+	// Find the user
+	var user models.User
+	err = collection.FindOne(ctx, bson.M{"username": req.Username}).Decode(&user)
+
+	if err != nil {
+		errors["username"] = "No username found"
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+		return
+	}
+
+	// Check if old password is correct
+	match := passwordhashing.VerifyPassword(req.OldPassword, user.Password)
+
+	if !match {
+		errors["old_password"] = "Old Password is incorrect"
+		w.Header().Set("Content-Type", "application/json")
+		 w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+		return
+	}
+
+	if req.OldPassword == req.NewPassword {
+        errors["old_password"] = "New password cannot be the same as the old password"
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]interface{}{"errors": errors})
+        return
+    }
+
+	// Hash the new password
+	hashedPassword, err := passwordhashing.HashPassword(req.NewPassword)
+
+	if err != nil {
+		http.Error(w, "Error hashing new password", http.StatusInternalServerError)
+        return
+	}
+
+	// Update the password in the database
+	update := bson.M{
+        "$set": bson.M{"password": string(hashedPassword)},
+    }
+
+	_, err = collection.UpdateOne(ctx, bson.M{"username": req.Username}, update, options.Update().SetUpsert(false))
+    if err != nil {
+        http.Error(w, "Error updating password", http.StatusInternalServerError)
+        return
+    }
+
+	// Success response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]string{"message": "Password updated successfully"})
+	
 }
 
 func DeleteAllUsersHandler(w http.ResponseWriter, r *http.Request) {
