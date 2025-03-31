@@ -5,6 +5,7 @@ import title from '../assets/icons/Title - large.svg'
 import CustomInput from '../components/atoms/input'
 import { BlueButton } from '../components/atoms/button'
 import { SimpleLink } from '../components/atoms/link'
+import { useNavigate } from 'react-router-dom'
 
 const FormContainer = styled.form`
     display: flex;
@@ -52,6 +53,8 @@ export const SignUp = () => {
         setErrors({})
     }
 
+    const navigate = useNavigate()
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -62,14 +65,30 @@ export const SignUp = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData),
+                credentials: 'include',
             })
 
             const data = await response.json()
 
             if (response.ok) {
-                console.log('User created:', data)
-                setUserCheck(true)
+                console.log('User signed up:', data)
                 setErrors({})
+
+                const userResponse = await fetch(
+                    'http://localhost:5000/api/user',
+                    {
+                        method: 'GET',
+                        credentials: 'include',
+                    }
+                )
+
+                if (userResponse.ok) {
+                    const userData = await userResponse.json()
+                    console.log('User data from Mongo:', userData)
+                    navigate(`/${userData.username}/chats`)
+                } else {
+                    console.error('Failed to fetch user data:', userResponse)
+                }
             } else {
                 console.error('Error:', data)
                 setErrors(data.errors || {})
@@ -143,7 +162,6 @@ export const SignUp = () => {
                     <SimpleLink to='/signin'>Sign in here.</SimpleLink>
                 </SubHeading14>
             </p>
-            {userCheck && <div>User Created</div>}
         </MainContainer>
     )
 }

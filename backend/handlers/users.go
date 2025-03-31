@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -88,25 +87,40 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+
 		token, err := utils.GenerateToken(user.Username)
 		if err != nil {
 			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 			return
 		}
 
-		sessionID := uuid.New().String()
-
-		ctx := context.TODO()
-		database.RedisClient.Set(ctx, "session:"+sessionID, token, 2*time.Hour)
-
-		response := map[string]interface{}{
-			"message": "User created successfully",
-			"token": token,
+		redisClient := database.RedisClient
+		userData := map[string]interface{}{
+			"username":  user.Username,
+			"email":     user.Email,
+			"firstName": user.FirstName,
+			"lastName":  user.LastName,
+			"token":     token,
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(response)
+		redisClient.HSet(ctx, "user:"+user.Username, userData)
+		redisClient.Expire(ctx, "user:"+user.Username, 2*time.Hour)
+
+
+		http.SetCookie(w, &http.Cookie{
+			Name: "jwt",
+			Value: token,
+			HttpOnly: true,
+			Secure: os.Getenv("ENV") == "production",
+			SameSite: http.SameSiteLaxMode,
+			Path: "/",
+			Expires: time.Now().Add(2 * time.Hour),
+		})
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"message": "Login successful"})
+
 	} else {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
