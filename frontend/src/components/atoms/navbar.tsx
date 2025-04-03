@@ -9,6 +9,7 @@ import logOut from '../../assets/icons/logOutIcon.svg'
 import settings from '../../assets/icons/settingsIcon.svg'
 import addFriend from '../../assets/icons/addFriendIcon.svg'
 import { SubHeading14 } from '../../styles/typography'
+import { useNotifications } from '../../utils'
 
 const MainContainer = styled.div`
     display: flex;
@@ -17,12 +18,12 @@ const MainContainer = styled.div`
     flex-direction: column;
     justify-content: space-between;
     padding: 0px 16px;
-    border-right: 2px solid ${(props) => props.theme.primaryColor.grey[3]};
 `
 const ItemContainer = styled.div`
     display: flex;
-    gap: 24px;
-    padding: 8px 16px;
+    padding: 0px 16px;
+    height: 48px;
+    justify-content: space-between;
     border-radius: 8px;
     align-items: center;
     position: relative;
@@ -33,6 +34,22 @@ const ItemContainer = styled.div`
     &.set {
         background-color: rgba(176, 176, 188, 0.4);
     }
+`
+
+const UserItemContainer = styled(ItemContainer)`
+    justify-content: unset;
+    gap: 24px;
+`
+
+const NotificationWrapper = styled.div`
+    display: flex;
+    color: ${(props) => props.theme.primaryColor.white[1]};
+    background-color: red;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
 `
 
 const IconWrapper = styled.img`
@@ -76,6 +93,11 @@ export const Navbar = () => {
     } | null>(null)
 
     const location = useLocation()
+
+    const { pendingRequests } = useNotifications()
+    useEffect(() => {
+        console.log('Updated pendingFriendRequests:', pendingRequests)
+    }, [pendingRequests])
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -135,8 +157,17 @@ export const Navbar = () => {
                     }
                     onClick={() => navigate(`/${username}/chats`)}
                 >
-                    <IconWrapper src={chatIcon} />{' '}
-                    <SubHeading14>Chats</SubHeading14>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '24px',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <IconWrapper src={chatIcon} />{' '}
+                        <SubHeading14>Chats</SubHeading14>
+                    </div>
                 </ItemContainer>
 
                 <ItemContainer
@@ -147,8 +178,17 @@ export const Navbar = () => {
                     }
                     onClick={() => navigate(`/${username}/friends`)}
                 >
-                    <IconWrapper src={friendsIcon} />
-                    <SubHeading14>Friends</SubHeading14>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '24px',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <IconWrapper src={friendsIcon} />
+                        <SubHeading14>Friends</SubHeading14>
+                    </div>
                 </ItemContainer>
 
                 <ItemContainer
@@ -159,11 +199,25 @@ export const Navbar = () => {
                     }
                     onClick={() => navigate(`/${username}/addfriend`)}
                 >
-                    <IconWrapper src={addFriend} />
-                    <SubHeading14>Add Friend</SubHeading14>
+                    <div
+                        style={{
+                            display: 'flex',
+                            gap: '24px',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <IconWrapper src={addFriend} />
+                        <SubHeading14>Add Friend</SubHeading14>
+                    </div>
+                    {pendingRequests > 0 && (
+                        <NotificationWrapper>
+                            {pendingRequests > 9 ? '9+' : pendingRequests}
+                        </NotificationWrapper>
+                    )}
                 </ItemContainer>
             </div>
-            <ItemContainer
+            <UserItemContainer
                 style={{ marginBottom: '32px' }}
                 onClick={() => setPopupVisible(!isPopupVisible)}
                 onBlur={() => setPopupVisible(false)}
@@ -176,20 +230,20 @@ export const Navbar = () => {
                 </SubHeading14>
                 {isPopupVisible && (
                     <Popup>
-                        <ItemContainer
+                        <UserItemContainer
                             onClick={() => navigate(`/${username}/settings`)}
                         >
                             <IconWrapper src={settings} />
                             <SubHeading14>Settings</SubHeading14>
-                        </ItemContainer>
+                        </UserItemContainer>
                         <img src={line} />
-                        <ItemContainer onClick={handleLogout}>
+                        <UserItemContainer onClick={handleLogout}>
                             <IconWrapper src={logOut} />
                             <SubHeading14>Sign Out</SubHeading14>
-                        </ItemContainer>
+                        </UserItemContainer>
                     </Popup>
                 )}
-            </ItemContainer>
+            </UserItemContainer>
         </MainContainer>
     )
 }

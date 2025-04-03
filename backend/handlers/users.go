@@ -260,9 +260,11 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var pendingList []bson.M
+	var pendingList []bson.M = []bson.M{}
+	
 	if len(user.PendingRequests) > 0 {
 		cursor, err := collection.Find(ctx, bson.M{"username": bson.M{"$in": user.PendingRequests}})
+		fmt.Println(cursor)
 		if err != nil {
 			http.Error(w, "Error fetching pending list", http.StatusInternalServerError)
 			return
@@ -571,4 +573,37 @@ func GetFriends(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(user.Friends)
+}
+
+func GetNotificationsHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("jwt")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	username, err := utils.GetUsernameFromToken(cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	ctx := context.TODO()
+	collection := database.GetCollection("users")
+
+	var user models.User
+
+	err = collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	response := map[string]interface{}{
+		"pendingRequests": len(user.PendingRequests),
+		// "unreadMessages":  user.UnreadMessages,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

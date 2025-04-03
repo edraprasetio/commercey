@@ -23,6 +23,7 @@ func main() {
 	router.HandleFunc("/api/signout", handlers.SignOutHandler).Methods("POST")
 	
 	router.HandleFunc("/api/user", handlers.GetUserHandler).Methods("GET")
+	router.HandleFunc("/api/notifications", handlers.GetNotificationsHandler).Methods("GET")
 	router.HandleFunc("/api/users", handlers.GetAllUsersHandler).Methods("GET")
 	router.HandleFunc("/api/users", handlers.DeleteAllUsersHandler).Methods("DELETE")
 

@@ -1,6 +1,6 @@
 import styled from '@emotion/styled'
 import { Navbar } from '../components/atoms/navbar'
-import { HomeBackground } from '../components/home/background'
+import { Card, HomeBackground } from '../components/home/background'
 import { Heading32, SubHeading14, SubTitle14 } from '../styles/typography'
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
@@ -8,8 +8,8 @@ import userIcon from '../assets/icons/userIcon.svg'
 import { useAuth } from '../utils'
 
 const MainContainer = styled.div`
-    margin: 32px 16px;
     display: flex;
+    height: 100vh;
     flex-direction: column;
 `
 
@@ -62,21 +62,23 @@ export const Friends = () => {
         <HomeBackground>
             <Navbar />
             <MainContainer>
-                <Heading32>Friends</Heading32>
-                <ul>
-                    {user?.friends?.length ? (
-                        user.friends.map((friend, index) => (
-                            <FriendContainer key={index}>
-                                <img src={userIcon} />
-                                <SubTitle14>
-                                    {friend.firstName} {friend.lastName}
-                                </SubTitle14>
-                            </FriendContainer>
-                        ))
-                    ) : (
-                        <p>No friends yet</p>
-                    )}
-                </ul>
+                <Card>
+                    <Heading32>Friends</Heading32>
+                    <ul style={{ padding: 'unset' }}>
+                        {user?.friends?.length ? (
+                            user.friends.map((friend, index) => (
+                                <FriendContainer key={index}>
+                                    <img src={userIcon} />
+                                    <SubTitle14>
+                                        {friend.firstName} {friend.lastName}
+                                    </SubTitle14>
+                                </FriendContainer>
+                            ))
+                        ) : (
+                            <p>No friends yet</p>
+                        )}
+                    </ul>
+                </Card>
             </MainContainer>
         </HomeBackground>
     )

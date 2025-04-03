@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { HomeBackground } from '../components/home/background'
+import { Card, HomeBackground } from '../components/home/background'
 import { BlueButton, ClearButton } from '../components/atoms/button'
 import { Navbar } from '../components/atoms/navbar'
 import {
@@ -16,22 +16,23 @@ import userIcon from '../assets/icons/userIcon.svg'
 import { useAuth } from '../utils'
 
 const MainContainer = styled.div`
-    margin: 32px 16px;
-    display: flex;
-    flex-direction: column;
     gap: 32px;
+    display: flex;
+    width: 400px;
+    height: 100vh;
+    flex-direction: column;
 `
 
 const FormContainer = styled.form`
     display: flex;
     flex-direction: column;
-    align-items: end;
+    align-items: start;
     gap: 8px;
 `
 
 const FriendContainer = styled.li`
     display: flex;
-    gap: 24px;
+    justify-content: space-between;
     padding: 8px 16px;
     border-radius: 8px;
     align-items: center;
@@ -190,20 +191,13 @@ export const AddFriend = () => {
         <HomeBackground>
             <Navbar />
             <MainContainer>
-                <Heading32>Add Friend</Heading32>
-                <FormContainer onSubmit={handleSubmitAdd}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '8px',
-                            alignItems: 'start',
-                            width: '320px',
-                        }}
-                    >
-                        <Heading20 style={{ marginBottom: '8px' }}>
+                <Card>
+                    <Heading32>Add Friend</Heading32>
+                    <FormContainer onSubmit={handleSubmitAdd}>
+                        <Heading20 style={{ marginTop: '8px' }}>
                             Add via username
                         </Heading20>
+
                         <CustomInput
                             status={errors.target_friend ? 'error' : ''}
                             type='text'
@@ -212,55 +206,78 @@ export const AddFriend = () => {
                             onChange={handleAddFriendChange}
                             message={errors.target_friend || ''}
                         />
-                    </div>
 
-                    <BlueButton
-                        style={{
-                            marginTop: '8px',
-                            padding: '4px 16px',
-                            width: 'unset',
-                        }}
-                        type='submit'
-                    >
-                        <SubHeading14>SEND REQUEST</SubHeading14>
-                    </BlueButton>
-                </FormContainer>
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px',
+                                alignItems: 'end',
+                                width: '100%',
+                            }}
+                        >
+                            <BlueButton
+                                style={{
+                                    marginTop: '8px',
+                                    padding: '4px 16px',
+                                    width: 'unset',
+                                }}
+                                type='submit'
+                            >
+                                <SubHeading14>SEND REQUEST</SubHeading14>
+                            </BlueButton>
+                        </div>
+                    </FormContainer>
 
-                <Heading20>Requests</Heading20>
-                <ul>
-                    {user?.pendingRequests?.length ? (
-                        user.pendingRequests.map((request, index) => (
-                            <FriendContainer key={index}>
-                                <img src={userIcon} />
-                                <SubTitle14>
-                                    {request.firstName} {request.lastName}
-                                </SubTitle14>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <BlueButton
+                    <Heading20>Requests</Heading20>
+                    <ul style={{ padding: 'unset' }}>
+                        {user?.pendingRequests?.length ? (
+                            user.pendingRequests.map((request, index) => (
+                                <FriendContainer key={index}>
+                                    <div
                                         style={{
-                                            padding: '4px 16px',
-                                            width: 'unset',
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            gap: '16px',
+                                            alignItems: 'center',
                                         }}
-                                        onClick={() =>
-                                            handleAccept(request.username)
-                                        }
                                     >
-                                        <SubHeading12>Accept</SubHeading12>
-                                    </BlueButton>
-                                    <ClearButton
-                                        onClick={() =>
-                                            handleReject(request.username)
-                                        }
+                                        <img src={userIcon} />
+                                        <SubTitle14>
+                                            {request.firstName}{' '}
+                                            {request.lastName}
+                                        </SubTitle14>
+                                    </div>
+
+                                    <div
+                                        style={{ display: 'flex', gap: '8px' }}
                                     >
-                                        <SubHeading12>Reject</SubHeading12>
-                                    </ClearButton>
-                                </div>
-                            </FriendContainer>
-                        ))
-                    ) : (
-                        <p>No requests yet</p>
-                    )}
-                </ul>
+                                        <BlueButton
+                                            style={{
+                                                padding: '4px 16px',
+                                                width: 'unset',
+                                            }}
+                                            onClick={() =>
+                                                handleAccept(request.username)
+                                            }
+                                        >
+                                            <SubHeading12>Accept</SubHeading12>
+                                        </BlueButton>
+                                        <ClearButton
+                                            onClick={() =>
+                                                handleReject(request.username)
+                                            }
+                                        >
+                                            <SubHeading12>Reject</SubHeading12>
+                                        </ClearButton>
+                                    </div>
+                                </FriendContainer>
+                            ))
+                        ) : (
+                            <p>No requests yet</p>
+                        )}
+                    </ul>
+                </Card>
             </MainContainer>
         </HomeBackground>
     )
