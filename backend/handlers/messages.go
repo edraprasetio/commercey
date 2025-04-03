@@ -12,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+var encryptionKey = []byte("your-32-byte-long-secret-key!") 
+
 func SendMessage(w http.ResponseWriter, r *http.Request) {
 	ctx := context.TODO()
 

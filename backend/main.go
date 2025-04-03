@@ -34,6 +34,8 @@ func main() {
 	router.HandleFunc("/api/friend/reject", handlers.RejectFriendRequest).Methods("POST")
 	router.HandleFunc("/api/friend/list", handlers.GetFriends).Methods("GET")
 
+	router.HandleFunc("/api/messages/send", handlers.SendMessage).Methods("POST")
+	router.HandleFunc("/api/messages", handlers.GetMessages).Methods("GET")
 	// Configure CORS to allow requests from your React app
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:3000"}, // Allow React app's origin
