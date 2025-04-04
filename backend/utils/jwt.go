@@ -17,7 +17,6 @@ func GenerateToken(username string) (string, error) {
 		})
 
 	tokenString, err := token.SignedString(jwtKey)
-	
 	if err != nil {
 		return "", err
 	}

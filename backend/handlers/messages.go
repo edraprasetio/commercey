@@ -2,17 +2,39 @@ package handlers
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"log"
 	"messeji-api/database"
 	"messeji-api/models"
 	"messeji-api/utils"
 	"net/http"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-var encryptionKey = []byte("your-32-byte-long-secret-key!") 
+var encryptionKey []byte 
+
+func init() {
+	encodedKey := os.Getenv("ENCRYPTION_KEY")
+	if encodedKey == "" {
+		log.Fatal("ENCRYPTION_KEY not found in environment")
+	}
+
+	decodedKey, err := base64.StdEncoding.DecodeString(encodedKey)
+	if err != nil {
+		log.Fatal("Failed to decode ENCRYPTION_KEY:", err)
+	}
+
+	if len(decodedKey) != 32 {
+		log.Fatalf("Invalid key length: got %d bytes, expected 32", len(decodedKey))
+	}
+
+	encryptionKey = decodedKey
+}
 
 func SendMessage(w http.ResponseWriter, r *http.Request) {
 	ctx := context.TODO()
@@ -39,10 +61,18 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	encryptedContent, err := utils.EncryptMessage(encryptionKey, request.Content)
+	if err != nil {
+		http.Error(w, "Failed to encrypt message", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("Encrypted message is: ", encryptedContent)
+
 	message := models.Message{
 		SenderUsername:    senderUsername,
 		RecipientUsername: request.RecipientUsername,
-		Content:           request.Content,
+		Content:           encryptedContent,
 		Timestamp:         time.Now(),
 		Read:              false,
 	}
@@ -99,6 +129,15 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 	if err = cursor.All(ctx, &messages); err != nil {
 		http.Error(w, "Error processing messages", http.StatusInternalServerError)
 		return
+	}
+
+	for i, msg := range messages {
+		decrypted, err := utils.DecryptMessage(encryptionKey, msg.Content)
+		if err != nil {
+			log.Println("Failed to decrypt message:", err)
+			continue // Keep the encrypted version if decryption fails
+		}
+		messages[i].Content = decrypted
 	}
 
 	// Mark received messages as read

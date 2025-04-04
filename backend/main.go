@@ -5,8 +5,10 @@ import (
 	"messeji-api/database"
 	"messeji-api/handlers"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
 
@@ -14,6 +16,11 @@ func main() {
 	// Initialize MongoDB
 	database.InitMongo()
 	defer database.CloseMongo()
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found")
+	}
 
 	database.InitRedis()
 
@@ -44,7 +51,9 @@ func main() {
 		AllowCredentials: true,
 	})
 
+	port := os.Getenv("PORT")
 	// Start the server with CORS middleware applied
-	log.Println("Starting server on :5000")
-	log.Fatal(http.ListenAndServe(":5000", corsHandler.Handler(router)))
+
+	log.Println("Starting server on :", port)
+	log.Fatal(http.ListenAndServe(":"+port, corsHandler.Handler(router)))
 }
