@@ -18,7 +18,7 @@ const StyledLabel = styled.label`
 
 const StyledInput = styled.input`
     padding: 16px 16px;
-    border: 1px solid ${(props) => props.theme.primaryColor.grey[2]};
+    border: 1px solid ${(props) => props.theme.primaryColor.grey[3]};
     border-radius: 8px;
     font-size: 16px;
     outline: none;

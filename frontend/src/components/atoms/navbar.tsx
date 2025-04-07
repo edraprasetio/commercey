@@ -18,6 +18,7 @@ const MainContainer = styled.div`
     flex-direction: column;
     justify-content: space-between;
     padding: 0px 16px;
+    flex-shrink: 0;
 `
 const ItemContainer = styled.div`
     display: flex;
