@@ -43,7 +43,7 @@ export const useNotifications = () => {
                 )
                 if (response.ok) {
                     const data = await response.json()
-                    console.log('Fetched Data:', data)
+                    // console.log('Fetched Data:', data)
                     setNotifications(data)
                     // console.log(notifications)
                 } else {

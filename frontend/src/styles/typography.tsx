@@ -41,3 +41,10 @@ export const SubHeading16 = styled.div`
     font-weight: 500;
     letter-spacing: 1px;
 `
+
+export const Paragraph14 = styled.div`
+    font-family: Roboto-Regular;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 1px;
+`

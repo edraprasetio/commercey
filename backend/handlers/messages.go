@@ -153,3 +153,118 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(messages)
 }
+
+type ConversationPreview struct {
+	Username    string `json:"username"`
+	FirstName   string `json:"firstName"`
+	LastName    string `json:"lastName"`
+	LastMessage string `json:"lastMessage"`
+	Timestamp   string `json:"timestamp"`
+}
+
+func formatTimeAgo(t time.Time) string {
+	duration := time.Since(t)
+
+	switch {
+	case duration < time.Minute:
+		return "Just now"
+	case duration < time.Hour:
+		return fmt.Sprintf("%dm", int(duration.Minutes()))
+	case duration < 24*time.Hour:
+		return fmt.Sprintf("%dh", int(duration.Hours()))
+	case duration < 7*24*time.Hour:
+		return fmt.Sprintf("%dd", int(duration.Hours()/24))
+	case duration < 365*24*time.Hour:
+		return fmt.Sprintf("%dw", int(duration.Hours()/(24*7)))
+	default:
+		return fmt.Sprintf("%dy", int(duration.Hours()/(24*365)))
+	}
+}
+
+func GetConversationList(w http.ResponseWriter, r *http.Request) {
+	ctx := context.TODO()
+	cookie, err := r.Cookie("jwt")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	currentUsername, err := utils.GetUsernameFromToken(cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	messageColl := database.GetCollection("messages")
+	userColl := database.GetCollection("users")
+
+	// Find all messages where the current user is involved
+	cursor, err := messageColl.Find(ctx, bson.M{
+		"$or": []bson.M{
+			{"sender_username": currentUsername},
+			{"recipient_username": currentUsername},
+		},
+	})
+	if err != nil {
+		http.Error(w, "Error fetching messages", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	type pair struct {
+		username string
+		message  models.Message
+	}
+
+	convoMap := make(map[string]models.Message)
+
+	for cursor.Next(ctx) {
+		var msg models.Message
+		if err := cursor.Decode(&msg); err != nil {
+			continue
+		}
+
+		var otherUser string
+		if msg.SenderUsername == currentUsername {
+			otherUser = msg.RecipientUsername
+		} else {
+			otherUser = msg.SenderUsername
+		}
+
+		// Only keep the latest message
+		if existing, found := convoMap[otherUser]; !found || msg.Timestamp.After(existing.Timestamp) {
+			convoMap[otherUser] = msg
+		}
+	}
+
+	var previews []ConversationPreview
+
+	for username, message := range convoMap {
+		// Get user's first and last name
+		var user models.User
+		err := userColl.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+		if err != nil {
+			continue
+		}
+
+		// Format time difference
+		formattedTime := formatTimeAgo(message.Timestamp)
+
+		decrypted, err := utils.DecryptMessage(encryptionKey, message.Content)
+		if err != nil {
+			log.Println("Failed to decrypt message:", err)
+			continue
+		}
+
+		previews = append(previews, ConversationPreview{
+			Username:    username,
+			FirstName:   user.FirstName,
+			LastName:    user.LastName,
+			LastMessage: decrypted, // decrypted if necessary
+			Timestamp:   formattedTime,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(previews)
+}

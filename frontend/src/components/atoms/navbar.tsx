@@ -111,7 +111,7 @@ export const Navbar = () => {
                 if (response.ok) {
                     const data = await response.json()
                     setUser(data)
-                    // console.log(user)
+                    // console.log('user is: ', user)
                 }
             } catch (error) {
                 console.error('Error fetching user:', error)
