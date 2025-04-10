@@ -10,6 +10,7 @@ import SendIcon from '../assets/icons/sendIcon.svg'
 import UserIcon from '../assets/icons/userIcon.svg'
 import Dot from '../assets/icons/dot.svg'
 import { encryptMessageWithAES, generateRSAKeyPair } from '../utils/encryption'
+import { ConversationList } from '../components/conversationList'
 
 const MainContainer = styled.div`
     display: flex;
@@ -23,20 +24,6 @@ const ContentWrapper = styled.div`
     width: 100%;
     gap: 16px;
     margin: 32px 32px 32px 0;
-`
-
-const LeftCard = styled(Card)`
-    margin: unset;
-    padding: unset;
-    width: 300px;
-    flex-shrink: 0;
-`
-
-const LeftContainer = styled.div`
-    margin: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
 `
 
 const RightCard = styled(Card)`
@@ -100,34 +87,6 @@ const ButtonContainer = styled.div`
     &:hover {
         background-color: ${(props) => props.theme.primaryColor.blue[2]};
     }
-`
-
-const FriendContainer = styled.li`
-    display: flex;
-    width: 248px;
-    gap: 16px;
-    padding: 8px 8px;
-    border-radius: 8px;
-    align-items: center;
-    position: relative;
-    color: ${(props) => props.theme.primaryColor.black[1]};
-    &:hover {
-        background-color: rgba(176, 176, 188, 0.4);
-    }
-`
-
-const PreviewMessageContainer = styled.span`
-    max-width: 180px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-`
-
-const PreviewContainer = styled.div`
-    display: flex;
-    gap: 4px;
-    alignitems: center;
-    color: ${(props) => props.theme.primaryColor.grey[1]};
 `
 
 const MessageContainer = styled.div`
@@ -197,6 +156,7 @@ export const Chats = () => {
     const [conversationList, setConversationList] = useState<
         ConversationPreview[]
     >([])
+    const [refreshFlag, setRefreshFlag] = useState(false)
     const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null)
     const [messages, setMessages] = useState<Message[]>([])
     const [newMessage, setNewMessage] = useState('')
@@ -296,7 +256,6 @@ export const Chats = () => {
         console.log('Private key is: ', privateKey)
         console.log('New Message is: ', newMessage)
         console.log('Encrypted Message is: ', encryptedMessage)
-        setNewMessage('')
 
         try {
             const res = await fetch('http://localhost:5000/api/messages/send', {
@@ -324,6 +283,7 @@ export const Chats = () => {
                 }
                 setMessages((prev) => [...prev, newMsg])
                 setNewMessage('')
+                setRefreshFlag((prev) => !prev)
             }
         } catch (err) {
             console.error('Error sending message:', err)
@@ -336,51 +296,13 @@ export const Chats = () => {
             <MainContainer>
                 {conversationList && (
                     <ContentWrapper>
-                        <LeftCard>
-                            <LeftContainer>
-                                <Heading32>Chats</Heading32>
-
-                                {conversationList.map((convo) => (
-                                    <FriendContainer
-                                        key={convo.username}
-                                        onClick={() => setSelectedFriend(convo)}
-                                        className={`friend-item ${
-                                            selectedFriend?.username ===
-                                            convo.username
-                                                ? 'active'
-                                                : ''
-                                        }`}
-                                    >
-                                        <img src={UserIcon} />
-                                        <div
-                                            style={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '8px',
-                                            }}
-                                        >
-                                            <SubTitle14>
-                                                {convo.firstName}{' '}
-                                                {convo.lastName}
-                                            </SubTitle14>
-                                            <PreviewContainer>
-                                                <PreviewMessageContainer>
-                                                    <Paragraph14>
-                                                        {convo.lastMessage}
-                                                    </Paragraph14>
-                                                </PreviewMessageContainer>
-                                                <img src={Dot} />
-                                                <span className='timestamp'>
-                                                    <Paragraph14>
-                                                        {convo.timestamp}
-                                                    </Paragraph14>
-                                                </span>
-                                            </PreviewContainer>
-                                        </div>
-                                    </FriendContainer>
-                                ))}
-                            </LeftContainer>
-                        </LeftCard>
+                        <ConversationList
+                            refreshFlag={refreshFlag}
+                            selectedFriend={selectedFriend}
+                            onSelectFriend={(friend) =>
+                                setSelectedFriend(friend)
+                            }
+                        />
                         {selectedFriend && (
                             <RightCard>
                                 <ProfileContainer>

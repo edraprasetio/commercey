@@ -142,6 +142,23 @@ export const Navbar = () => {
         }
     }
 
+    const handleChats = async () => {
+        try {
+            const res = await fetch(
+                'http://localhost:5000/api/messages/conversations',
+                {
+                    credentials: 'include', // if using cookies
+                }
+            )
+            const data = await res.json()
+            // setConversationList(data)
+            console.log('Conversation data: ', data)
+            navigate(`/${username}/friends`)
+        } catch (err) {
+            console.error('Error fetching conversations:', err)
+        }
+    }
+
     return (
         <MainContainer>
             <div
