@@ -92,6 +92,7 @@ const ButtonContainer = styled.div`
 const MessageContainer = styled.div`
     flex: 1;
     display: flex;
+    margin-top: 4px;
     flex-direction: column;
     // justify-content: flex-end;
     overflow-y: auto;
@@ -336,31 +337,35 @@ export const Chats = () => {
                                     </ProfileContent>
                                 </ProfileContainer>
                                 <MessageContainer>
-                                    {messages.map((msg) => {
-                                        const isMe =
-                                            msg.senderUsername ===
-                                            currentUser?.username
-                                        return (
-                                            <MessageBubble
-                                                key={msg.id}
-                                                isMe={isMe}
-                                            >
-                                                {!isMe && (
-                                                    <img src={UserIcon} />
-                                                )}
-                                                <BubbleContent isMe={isMe}>
-                                                    <Paragraph14
-                                                        style={{
-                                                            display:
-                                                                'inline-block',
-                                                        }}
-                                                    >
-                                                        {msg.content}
-                                                    </Paragraph14>
-                                                </BubbleContent>
-                                            </MessageBubble>
+                                    {messages
+                                        .filter(
+                                            (msg) => msg.content.trim() !== ''
                                         )
-                                    })}
+                                        .map((msg) => {
+                                            const isMe =
+                                                msg.senderUsername ===
+                                                currentUser?.username
+                                            return (
+                                                <MessageBubble
+                                                    key={msg.id}
+                                                    isMe={isMe}
+                                                >
+                                                    {!isMe && (
+                                                        <img src={UserIcon} />
+                                                    )}
+                                                    <BubbleContent isMe={isMe}>
+                                                        <Paragraph14
+                                                            style={{
+                                                                display:
+                                                                    'inline-block',
+                                                            }}
+                                                        >
+                                                            {msg.content}
+                                                        </Paragraph14>
+                                                    </BubbleContent>
+                                                </MessageBubble>
+                                            )
+                                        })}
                                     <div ref={messagesEndRef} />
                                 </MessageContainer>
                                 <InputContainer>

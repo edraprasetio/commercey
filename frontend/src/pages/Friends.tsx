@@ -2,7 +2,7 @@ import styled from '@emotion/styled'
 import { Navbar } from '../components/atoms/navbar'
 import { Card, HomeBackground } from '../components/home/background'
 import { Heading32, SubHeading14, SubTitle14 } from '../styles/typography'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import userIcon from '../assets/icons/userIcon.svg'
 import { useAuth } from '../utils'
@@ -35,6 +35,8 @@ export const Friends = () => {
         friends: { username: string; firstName: string; lastName: string }[]
     } | null>(null)
 
+    const navigate = useNavigate()
+
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -58,6 +60,29 @@ export const Friends = () => {
             fetchUser()
         }
     }, [username])
+
+    const handleMessageClick = async (friendUsername: string) => {
+        try {
+            const res = await fetch(
+                'http://localhost:5000/api/messages/initiate',
+                {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipientUsername: friendUsername }),
+                }
+            )
+
+            if (res.ok) {
+                navigate(`/${username}/chats/${friendUsername}`)
+            } else {
+                console.error('Failed to initiate chat')
+            }
+        } catch (error) {
+            console.error('Error initiating chat:', error)
+        }
+    }
+
     return (
         <HomeBackground>
             <Navbar />
@@ -82,6 +107,9 @@ export const Friends = () => {
                                             padding: '4px 16px',
                                             width: 'unset',
                                         }}
+                                        onClick={() =>
+                                            handleMessageClick(friend.username)
+                                        }
                                     >
                                         <SubHeading14>Message</SubHeading14>
                                     </BlueButton>

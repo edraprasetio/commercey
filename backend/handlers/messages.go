@@ -11,6 +11,7 @@ import (
 	"messeji-api/utils"
 	"net/http"
 	"os"
+	"sort"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -160,6 +161,7 @@ type ConversationPreview struct {
 	LastName    string `json:"lastName"`
 	LastMessage string `json:"lastMessage"`
 	Timestamp   string `json:"timestamp"`
+	RawTimestamp  int64  `json:"rawTimestamp"`
 }
 
 func formatTimeAgo(t time.Time) string {
@@ -262,9 +264,85 @@ func GetConversationList(w http.ResponseWriter, r *http.Request) {
 			LastName:    user.LastName,
 			LastMessage: decrypted, // decrypted if necessary
 			Timestamp:   formattedTime,
+			RawTimestamp: message.Timestamp.Unix(),
 		})
 	}
 
+	sort.Slice(previews, func(i, j int) bool {
+		return previews[i].RawTimestamp > previews[j].RawTimestamp
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(previews)
+}
+
+func InitiateChat(w http.ResponseWriter, r *http.Request) {
+	ctx := context.TODO()
+
+	var request struct {
+		RecipientUsername string `json:"recipientUsername"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Get sender username from JWT
+	cookie, err := r.Cookie("jwt")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	senderUsername, err := utils.GetUsernameFromToken(cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	// Prevent users from creating a chat with themselves
+	if senderUsername == request.RecipientUsername {
+		http.Error(w, "Cannot initiate chat with self", http.StatusBadRequest)
+		return
+	}
+
+	collection := database.GetCollection("messages")
+
+	// Check if any messages already exist between the two users
+	count, err := collection.CountDocuments(ctx, bson.M{
+		"$or": []bson.M{
+			{"sender_username": senderUsername, "recipient_username": request.RecipientUsername},
+			{"sender_username": request.RecipientUsername, "recipient_username": senderUsername},
+		},
+	})
+	if err != nil {
+		http.Error(w, "Error checking existing messages", http.StatusInternalServerError)
+		return
+	}
+
+	if count == 0 {
+		// Insert a blank system message to initialize chat
+		placeholder, err := utils.EncryptMessage(encryptionKey, " ")
+		if err != nil {
+			http.Error(w, "Failed to encrypt placeholder", http.StatusInternalServerError)
+			return
+		}
+
+		placeholderMsg := models.Message{
+			SenderUsername:    senderUsername,
+			RecipientUsername: request.RecipientUsername,
+			Content:           placeholder,
+			Timestamp:         time.Now(),
+			Read:              true,
+		}
+
+		_, err = collection.InsertOne(ctx, placeholderMsg)
+		if err != nil {
+			http.Error(w, "Failed to create placeholder message", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "chat initialized"})
 }

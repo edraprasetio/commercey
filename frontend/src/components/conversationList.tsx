@@ -38,7 +38,7 @@ const FriendContainer = styled.li`
 `
 
 const PreviewMessageContainer = styled.span`
-    max-width: 180px;
+    max-width: 128px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -107,41 +107,51 @@ export const ConversationList = ({
         <LeftCard>
             <LeftContainer>
                 <Heading32>Chats</Heading32>
-                {conversationList.map((convo) => (
-                    <FriendContainer
-                        key={convo.username}
-                        onClick={() => onSelectFriend(convo)}
-                        className={`friend-item ${
-                            selectedFriend?.username === convo.username
-                                ? 'set'
-                                : ''
-                        }`}
-                    >
-                        <img src={UserIcon} />
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '8px',
-                            }}
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                    }}
+                >
+                    {conversationList.map((convo) => (
+                        <FriendContainer
+                            key={convo.username}
+                            onClick={() => onSelectFriend(convo)}
+                            className={`friend-item ${
+                                selectedFriend?.username === convo.username
+                                    ? 'set'
+                                    : ''
+                            }`}
                         >
-                            <SubTitle14>
-                                {convo.firstName} {convo.lastName}
-                            </SubTitle14>
-                            <PreviewContainer>
-                                <PreviewMessageContainer>
-                                    <Paragraph14>
-                                        {convo.lastMessage}
-                                    </Paragraph14>
-                                </PreviewMessageContainer>
-                                <img src={Dot} />
-                                <span className='timestamp'>
-                                    <Paragraph14>{convo.timestamp}</Paragraph14>
-                                </span>
-                            </PreviewContainer>
-                        </div>
-                    </FriendContainer>
-                ))}
+                            <img src={UserIcon} />
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '8px',
+                                }}
+                            >
+                                <SubTitle14>
+                                    {convo.firstName} {convo.lastName}
+                                </SubTitle14>
+                                <PreviewContainer>
+                                    <PreviewMessageContainer>
+                                        <Paragraph14>
+                                            {convo.lastMessage}
+                                        </Paragraph14>
+                                    </PreviewMessageContainer>
+                                    <img src={Dot} />
+                                    <span className='timestamp'>
+                                        <Paragraph14>
+                                            {convo.timestamp}
+                                        </Paragraph14>
+                                    </span>
+                                </PreviewContainer>
+                            </div>
+                        </FriendContainer>
+                    ))}
+                </div>
             </LeftContainer>
         </LeftCard>
     )
