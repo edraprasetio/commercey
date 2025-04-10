@@ -151,9 +151,15 @@ export const Navbar = () => {
                 }
             )
             const data = await res.json()
+            if (data.length > 0) {
+                const firstFriend = data[0]
+                console.log('Conversation data: ', data)
+                console.log('My first friend is: ', firstFriend.username)
+                navigate(`/${username}/chats`)
+            } else {
+                navigate(`/${username}/chats`)
+            }
             // setConversationList(data)
-            console.log('Conversation data: ', data)
-            navigate(`/${username}/friends`)
         } catch (err) {
             console.error('Error fetching conversations:', err)
         }
@@ -173,7 +179,7 @@ export const Navbar = () => {
                     className={
                         location.pathname === `/${username}/chats` ? 'set' : ''
                     }
-                    onClick={() => navigate(`/${username}/chats`)}
+                    onClick={handleChats}
                 >
                     <div
                         style={{

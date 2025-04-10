@@ -32,6 +32,9 @@ const FriendContainer = styled.li`
     &:hover {
         background-color: rgba(176, 176, 188, 0.4);
     }
+    &.set {
+        background-color: rgba(176, 176, 188, 0.4);
+    }
 `
 
 const PreviewMessageContainer = styled.span`
@@ -110,7 +113,7 @@ export const ConversationList = ({
                         onClick={() => onSelectFriend(convo)}
                         className={`friend-item ${
                             selectedFriend?.username === convo.username
-                                ? 'active'
+                                ? 'set'
                                 : ''
                         }`}
                     >
