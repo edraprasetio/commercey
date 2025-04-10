@@ -9,13 +9,22 @@ import { useAuth } from '../utils'
 import SendIcon from '../assets/icons/sendIcon.svg'
 import UserIcon from '../assets/icons/userIcon.svg'
 import Dot from '../assets/icons/dot.svg'
-import { generateRSAKeyPair } from '../utils/encryption'
+import { encryptMessageWithAES, generateRSAKeyPair } from '../utils/encryption'
 
 const MainContainer = styled.div`
     display: flex;
     height: 100vh;
     width: 100%;
 `
+
+const ContentWrapper = styled.div`
+    display: flex;
+    flex: 1;
+    width: 100%;
+    gap: 16px;
+    margin: 32px 32px 32px 0;
+`
+
 const LeftCard = styled(Card)`
     margin: unset;
     padding: unset;
@@ -122,11 +131,12 @@ const PreviewContainer = styled.div`
 `
 
 const MessageContainer = styled.div`
+    flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    // justify-content: flex-end;
+    overflow-y: auto;
     width: 100%;
-    height: 100%;
 `
 
 const MessageBubble = styled.div<{ isMe: boolean }>`
@@ -280,9 +290,12 @@ export const Chats = () => {
 
         const publicKey = keyPair.publicKey
         const privateKey = keyPair.privateKey
+
+        const encryptedMessage = encryptMessageWithAES(newMessage, publicKey)
         console.log('Public key is: ', publicKey)
         console.log('Private key is: ', privateKey)
         console.log('New Message is: ', newMessage)
+        console.log('Encrypted Message is: ', encryptedMessage)
         setNewMessage('')
 
         try {
@@ -321,16 +334,7 @@ export const Chats = () => {
         <HomeBackground>
             <Navbar />
             <MainContainer>
-                <div
-                    style={{
-                        display: 'flex',
-                        width: '100%',
-                        gap: '16px',
-                        marginTop: '32px',
-                        marginBottom: '32px',
-                        marginRight: '32px',
-                    }}
-                >
+                <ContentWrapper>
                     <LeftCard>
                         <LeftContainer>
                             <Heading32>Chats</Heading32>
@@ -428,7 +432,7 @@ export const Chats = () => {
                             </InputContainer>
                         </RightCard>
                     )}
-                </div>
+                </ContentWrapper>
             </MainContainer>
         </HomeBackground>
     )
