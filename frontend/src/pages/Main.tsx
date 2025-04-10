@@ -10,7 +10,7 @@ import { AddFriend } from './AddFriend'
 const Main = () => (
     <Routes>
         <Route
-            path='/:username/chats'
+            path='/:username/chats/:friendUsername'
             element={
                 <>
                     <Chats />

@@ -155,7 +155,7 @@ export const Navbar = () => {
                 const firstFriend = data[0]
                 console.log('Conversation data: ', data)
                 console.log('My first friend is: ', firstFriend.username)
-                navigate(`/${username}/chats`)
+                navigate(`/${username}/chats/${firstFriend.username}`)
             } else {
                 navigate(`/${username}/chats`)
             }

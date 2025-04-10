@@ -166,7 +166,8 @@ export const Chats = () => {
         username: string
     } | null>(null)
 
-    const { username } = useParams()
+    const { username, friendUsername } = useParams()
+    const navigate = useNavigate()
 
     useEffect(() => {
         const fetchConversations = async () => {
@@ -179,7 +180,12 @@ export const Chats = () => {
                 )
                 const data: ConversationPreview[] = await res.json()
                 setConversationList(data)
-                console.log(conversationList)
+                if (!friendUsername && data.length > 0) {
+                    navigate(`/${username}/chats/${data[0].username}`, {
+                        replace: true,
+                    })
+                }
+                // console.log(conversationList)
             } catch (err) {
                 console.error('Error fetching conversations:', err)
             }
@@ -242,6 +248,18 @@ export const Chats = () => {
         scrollToBottom()
     }, [messages])
 
+    useEffect(() => {
+        if (!conversationList.length || !friendUsername) return
+
+        const selected = conversationList.find(
+            (friend) => friend.username === friendUsername
+        )
+
+        if (selected) {
+            setSelectedFriend(selected)
+        }
+    }, [friendUsername, conversationList])
+
     const sendMessage = async () => {
         if (!selectedFriend || !newMessage.trim()) return
 
@@ -299,9 +317,12 @@ export const Chats = () => {
                         <ConversationList
                             refreshFlag={refreshFlag}
                             selectedFriend={selectedFriend}
-                            onSelectFriend={(friend) =>
+                            onSelectFriend={(friend) => {
                                 setSelectedFriend(friend)
-                            }
+                                navigate(
+                                    `/${username}/chats/${friend.username}`
+                                )
+                            }}
                         />
                         {selectedFriend && (
                             <RightCard>
