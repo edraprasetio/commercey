@@ -105,7 +105,7 @@ const ButtonContainer = styled.div`
 const FriendContainer = styled.li`
     display: flex;
     width: 248px;
-    gap: 8px;
+    gap: 16px;
     padding: 8px 8px;
     border-radius: 8px;
     align-items: center;
@@ -334,105 +334,115 @@ export const Chats = () => {
         <HomeBackground>
             <Navbar />
             <MainContainer>
-                <ContentWrapper>
-                    <LeftCard>
-                        <LeftContainer>
-                            <Heading32>Chats</Heading32>
-                            {conversationList.map((convo) => (
-                                <FriendContainer
-                                    key={convo.username}
-                                    onClick={() => setSelectedFriend(convo)}
-                                    className={`friend-item ${
-                                        selectedFriend?.username ===
-                                        convo.username
-                                            ? 'active'
-                                            : ''
-                                    }`}
-                                >
-                                    <img src={UserIcon} />
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '8px',
+                {conversationList && (
+                    <ContentWrapper>
+                        <LeftCard>
+                            <LeftContainer>
+                                <Heading32>Chats</Heading32>
+
+                                {conversationList.map((convo) => (
+                                    <FriendContainer
+                                        key={convo.username}
+                                        onClick={() => setSelectedFriend(convo)}
+                                        className={`friend-item ${
+                                            selectedFriend?.username ===
+                                            convo.username
+                                                ? 'active'
+                                                : ''
+                                        }`}
+                                    >
+                                        <img src={UserIcon} />
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '8px',
+                                            }}
+                                        >
+                                            <SubTitle14>
+                                                {convo.firstName}{' '}
+                                                {convo.lastName}
+                                            </SubTitle14>
+                                            <PreviewContainer>
+                                                <PreviewMessageContainer>
+                                                    <Paragraph14>
+                                                        {convo.lastMessage}
+                                                    </Paragraph14>
+                                                </PreviewMessageContainer>
+                                                <img src={Dot} />
+                                                <span className='timestamp'>
+                                                    <Paragraph14>
+                                                        {convo.timestamp}
+                                                    </Paragraph14>
+                                                </span>
+                                            </PreviewContainer>
+                                        </div>
+                                    </FriendContainer>
+                                ))}
+                            </LeftContainer>
+                        </LeftCard>
+                        {selectedFriend && (
+                            <RightCard>
+                                <ProfileContainer>
+                                    <ProfileContent>
+                                        <img src={UserIcon} />
+                                        <SubTitle14>
+                                            {selectedFriend.firstName}{' '}
+                                            {selectedFriend.lastName}
+                                        </SubTitle14>
+                                    </ProfileContent>
+                                </ProfileContainer>
+                                <MessageContainer>
+                                    {messages.map((msg) => {
+                                        const isMe =
+                                            msg.senderUsername ===
+                                            currentUser?.username
+                                        return (
+                                            <MessageBubble
+                                                key={msg.id}
+                                                isMe={isMe}
+                                            >
+                                                {!isMe && (
+                                                    <img src={UserIcon} />
+                                                )}
+                                                <BubbleContent isMe={isMe}>
+                                                    <Paragraph14
+                                                        style={{
+                                                            display:
+                                                                'inline-block',
+                                                        }}
+                                                    >
+                                                        {msg.content}
+                                                    </Paragraph14>
+                                                </BubbleContent>
+                                            </MessageBubble>
+                                        )
+                                    })}
+                                    <div ref={messagesEndRef} />
+                                </MessageContainer>
+                                <InputContainer>
+                                    <InputContent
+                                        onSubmit={(e) => {
+                                            e.preventDefault()
+                                            sendMessage()
                                         }}
                                     >
-                                        <SubTitle14>
-                                            {convo.firstName} {convo.lastName}
-                                        </SubTitle14>
-                                        <PreviewContainer>
-                                            <PreviewMessageContainer>
-                                                <Paragraph14>
-                                                    {convo.lastMessage}
-                                                </Paragraph14>
-                                            </PreviewMessageContainer>
-                                            <img src={Dot} />
-                                            <span className='timestamp'>
-                                                <Paragraph14>
-                                                    {convo.timestamp}
-                                                </Paragraph14>
-                                            </span>
-                                        </PreviewContainer>
-                                    </div>
-                                </FriendContainer>
-                            ))}
-                        </LeftContainer>
-                    </LeftCard>
-                    {selectedFriend && (
-                        <RightCard>
-                            <ProfileContainer>
-                                <ProfileContent>
-                                    <img src={UserIcon} />
-                                    <SubTitle14>
-                                        {selectedFriend.firstName}{' '}
-                                        {selectedFriend.lastName}
-                                    </SubTitle14>
-                                </ProfileContent>
-                            </ProfileContainer>
-                            <MessageContainer>
-                                {messages.map((msg) => {
-                                    const isMe =
-                                        msg.senderUsername ===
-                                        currentUser?.username
-                                    return (
-                                        <MessageBubble key={msg.id} isMe={isMe}>
-                                            {!isMe && <img src={UserIcon} />}
-                                            <BubbleContent isMe={isMe}>
-                                                <Paragraph14
-                                                    style={{
-                                                        display: 'inline-block',
-                                                    }}
-                                                >
-                                                    {msg.content}
-                                                </Paragraph14>
-                                            </BubbleContent>
-                                        </MessageBubble>
-                                    )
-                                })}
-                                <div ref={messagesEndRef} />
-                            </MessageContainer>
-                            <InputContainer>
-                                <InputContent
-                                    onSubmit={(e) => {
-                                        e.preventDefault()
-                                        sendMessage()
-                                    }}
-                                >
-                                    <StyledInput
-                                        value={newMessage}
-                                        onChange={(e) =>
-                                            setNewMessage(e.target.value)
-                                        }
-                                        placeholder='Aa'
-                                    />
-                                    <ButtonContainer onClick={sendMessage}>
-                                        <img src={SendIcon} />
-                                    </ButtonContainer>
-                                </InputContent>
-                            </InputContainer>
-                        </RightCard>
-                    )}
-                </ContentWrapper>
+                                        <StyledInput
+                                            value={newMessage}
+                                            onChange={(e) =>
+                                                setNewMessage(e.target.value)
+                                            }
+                                            placeholder='Aa'
+                                        />
+                                        <ButtonContainer onClick={sendMessage}>
+                                            <img src={SendIcon} />
+                                        </ButtonContainer>
+                                    </InputContent>
+                                </InputContainer>
+                            </RightCard>
+                        )}
+                    </ContentWrapper>
+                )}
             </MainContainer>
         </HomeBackground>
     )

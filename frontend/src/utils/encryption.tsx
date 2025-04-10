@@ -36,3 +36,21 @@ export const encryptMessageWithAES = async (
         iv,
     }
 }
+
+const decryptMessageWithAES = async (
+    encryptedMessage: BufferSource,
+    aesKey: CryptoKey,
+    iv: any
+) => {
+    const decryptedMessage = await window.crypto.subtle.decrypt(
+        {
+            name: 'AES-GCM',
+            iv: iv, // The IV used for encryption
+        },
+        aesKey,
+        encryptedMessage
+    )
+
+    const decoder = new TextDecoder()
+    return decoder.decode(decryptedMessage)
+}

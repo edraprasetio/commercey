@@ -51,6 +51,7 @@ export const AddFriend = () => {
         username: '',
         target_friend: '',
     })
+    const [successMessage, setSuccessMessage] = useState('')
 
     const handleAddFriendChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setAddFriendForm({ ...addFriendForm, [e.target.name]: e.target.value })
@@ -118,12 +119,16 @@ export const AddFriend = () => {
             if (response.ok) {
                 console.log(data.message)
                 setErrors({})
+                setAddFriendForm({ username: '', target_friend: '' })
+                setSuccessMessage('Request successfully sent!')
             } else {
                 console.error('Error:')
+                setSuccessMessage('')
                 // setErrors(data.errors || {})
             }
         } catch (error) {
             console.error('Request failed', error)
+            setSuccessMessage('')
         }
     }
 
@@ -172,7 +177,6 @@ export const AddFriend = () => {
                 }
             )
             if (response.ok) {
-                // Update state to remove the rejected request
                 setUser((prevUser) => ({
                     ...prevUser!,
                     pendingRequests: prevUser!.pendingRequests.filter(
@@ -204,7 +208,7 @@ export const AddFriend = () => {
                             name='target_friend'
                             value={addFriendForm.target_friend}
                             onChange={handleAddFriendChange}
-                            message={errors.target_friend || ''}
+                            message={errors.target_friend || successMessage}
                         />
 
                         <div

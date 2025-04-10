@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import userIcon from '../assets/icons/userIcon.svg'
 import { useAuth } from '../utils'
+import { BlueButton } from '../components/atoms/button'
 
 const MainContainer = styled.div`
     display: flex;
@@ -15,10 +16,9 @@ const MainContainer = styled.div`
 
 const FriendContainer = styled.li`
     display: flex;
-    width: 240px;
-    gap: 24px;
     padding: 8px 16px;
     border-radius: 8px;
+    justify-content: space-between;
     align-items: center;
     position: relative;
     color: ${(props) => props.theme.primaryColor.black[1]};
@@ -68,10 +68,23 @@ export const Friends = () => {
                         {user?.friends?.length ? (
                             user.friends.map((friend, index) => (
                                 <FriendContainer key={index}>
-                                    <img src={userIcon} />
-                                    <SubTitle14>
-                                        {friend.firstName} {friend.lastName}
-                                    </SubTitle14>
+                                    <div
+                                        style={{ display: 'flex', gap: '24px' }}
+                                    >
+                                        <img src={userIcon} />
+                                        <SubTitle14>
+                                            {friend.firstName} {friend.lastName}
+                                        </SubTitle14>
+                                    </div>
+
+                                    <BlueButton
+                                        style={{
+                                            padding: '4px 16px',
+                                            width: 'unset',
+                                        }}
+                                    >
+                                        <SubHeading14>Message</SubHeading14>
+                                    </BlueButton>
                                 </FriendContainer>
                             ))
                         ) : (
