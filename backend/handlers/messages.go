@@ -346,3 +346,35 @@ func InitiateChat(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "chat initialized"})
 }
+
+func DeleteAllMessages(w http.ResponseWriter, r *http.Request) {
+	ctx := context.TODO()
+
+	// Ask for confirmation, or if needed, implement specific validation
+	var request struct {
+		Confirm bool `json:"confirm"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Check if confirmation flag is true
+	if !request.Confirm {
+		http.Error(w, "Confirmation required to delete all messages", http.StatusBadRequest)
+		return
+	}
+
+	// Access the MongoDB collection
+	collection := database.GetCollection("messages")
+
+	// Delete all messages from the collection
+	_, err := collection.DeleteMany(ctx, bson.M{})
+	if err != nil {
+		http.Error(w, "Error deleting messages", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "All messages deleted successfully"})
+}

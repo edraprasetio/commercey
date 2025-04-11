@@ -45,6 +45,7 @@ func main() {
 	router.HandleFunc("/api/messages", handlers.GetMessages).Methods("GET")
 	router.HandleFunc("/api/messages/conversations", handlers.GetConversationList).Methods("GET")
 	router.HandleFunc("/api/messages/initiate", handlers.InitiateChat).Methods("POST")
+	router.HandleFunc("/api/messages", handlers.DeleteAllMessages).Methods("DELETE")
 
 	// Configure CORS to allow requests from your React app
 	corsHandler := cors.New(cors.Options{
