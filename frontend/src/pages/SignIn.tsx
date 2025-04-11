@@ -6,6 +6,7 @@ import CustomInput from '../components/atoms/input'
 import { BlueButton } from '../components/atoms/button'
 import { SimpleLink } from '../components/atoms/link'
 import { useNavigate } from 'react-router-dom'
+import { generateAndStoreKeys, openDatabase } from '../utils/database'
 
 const FormContainer = styled.form`
     display: flex;
@@ -61,6 +62,9 @@ export const SignIn = () => {
                 body: JSON.stringify(formData),
                 credentials: 'include',
             })
+            await openDatabase()
+            generateAndStoreKeys()
+            console.log('Database opened successfully!')
 
             const data = await response.json()
 
@@ -79,7 +83,7 @@ export const SignIn = () => {
                 if (userResponse.ok) {
                     const userData = await userResponse.json()
                     console.log('User data from Mongo:', userData)
-                    navigate(`/${userData.username}/chats`)
+                    navigate(`/${userData.username}/friends`)
                 } else {
                     console.error('Failed to fetch user data:', userResponse)
                 }

@@ -6,6 +6,7 @@ import CustomInput from '../components/atoms/input'
 import { BlueButton } from '../components/atoms/button'
 import { SimpleLink } from '../components/atoms/link'
 import { useNavigate } from 'react-router-dom'
+import { generateAndStoreKeys, openDatabase } from '../utils/database'
 
 const FormContainer = styled.form`
     display: flex;
@@ -67,6 +68,10 @@ export const SignUp = () => {
                 body: JSON.stringify(formData),
                 credentials: 'include',
             })
+
+            await openDatabase()
+            generateAndStoreKeys()
+            console.log('Database opened successfully!')
 
             const data = await response.json()
 

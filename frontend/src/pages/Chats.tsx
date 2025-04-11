@@ -9,8 +9,9 @@ import { useAuth } from '../utils'
 import SendIcon from '../assets/icons/sendIcon.svg'
 import UserIcon from '../assets/icons/userIcon.svg'
 import Dot from '../assets/icons/dot.svg'
-import { encryptMessageWithAES, generateRSAKeyPair } from '../utils/encryption'
 import { ConversationList } from '../components/conversationList'
+import { rsaEncrypt, generateRSAKeys, rsaDecrypt } from '../utils/encryption'
+import { getPrivateKey, getPublicKey, openDatabase } from '../utils/database'
 
 const MainContainer = styled.div`
     display: flex;
@@ -123,6 +124,8 @@ const BubbleContent = styled.div<{ isMe: boolean }>`
             ? props.theme.primaryColor.white[1]
             : props.theme.primaryColor.black[1]};
     padding: 10px 15px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     border-radius: 20px;
     margin: 2px 0;
 `
@@ -197,7 +200,7 @@ export const Chats = () => {
 
     useEffect(() => {
         if (!selectedFriend) return
-        console.log('Selected friend is: ', selectedFriend)
+        // console.log('Selected friend is: ', selectedFriend)
 
         fetch(
             `http://localhost:5000/api/messages?recipient=${selectedFriend.username}`,
@@ -227,7 +230,7 @@ export const Chats = () => {
                 if (response.ok) {
                     const data = await response.json()
                     setCurrentUser(data)
-                    console.log('Current user: ', currentUser)
+                    // console.log('Current user: ', currentUser)
                 }
             } catch (error) {
                 console.error('Error fetching user:', error)
@@ -264,19 +267,33 @@ export const Chats = () => {
     const sendMessage = async () => {
         if (!selectedFriend || !newMessage.trim()) return
 
-        // const encryptionKey = await getKeyForFriend(selectedFriend.username)
-        const keyPair = await generateRSAKeyPair()
-
-        const publicKey = keyPair.publicKey
-        const privateKey = keyPair.privateKey
-
-        const encryptedMessage = encryptMessageWithAES(newMessage, publicKey)
-        console.log('Public key is: ', publicKey)
-        console.log('Private key is: ', privateKey)
         console.log('New Message is: ', newMessage)
-        console.log('Encrypted Message is: ', encryptedMessage)
 
         try {
+            const db = await openDatabase()
+            const recipientPublicKey = await getPublicKey(db)
+            const receiverPrivateKey = await getPrivateKey(db)
+
+            if (!recipientPublicKey) {
+                console.error("Recipient's public key not found.")
+                return
+            }
+
+            if (!receiverPrivateKey) {
+                console.error("Receiver's private key not found.")
+                return
+            }
+
+            const encryptedMessage = rsaEncrypt(newMessage, recipientPublicKey)
+            console.log('Encrypted Message is: ', encryptedMessage)
+
+            const decryptedContent = rsaDecrypt(
+                encryptedMessage,
+                receiverPrivateKey
+            )
+
+            console.log('Decrypted message is: ', decryptedContent)
+
             const res = await fetch('http://localhost:5000/api/messages/send', {
                 method: 'POST',
                 credentials: 'include',
@@ -394,4 +411,7 @@ export const Chats = () => {
             </MainContainer>
         </HomeBackground>
     )
+}
+function generateRSAKeyPair(): { publicKey: any; privateKey: any } {
+    throw new Error('Function not implemented.')
 }

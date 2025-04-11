@@ -1,17 +1,4 @@
-export const generateRSAKeyPair = async () => {
-    const keyPair = await window.crypto.subtle.generateKey(
-        {
-            name: 'RSA-OAEP',
-            modulusLength: 2048, // Key length in bits
-            publicExponent: new Uint8Array([1, 0, 1]), // 65537
-            hash: { name: 'SHA-256' },
-        },
-        true, // Whether the key can be exported
-        ['encrypt', 'decrypt'] // Usable for encryption and decryption
-    )
-
-    return keyPair
-}
+import * as forge from 'node-forge'
 
 export const encryptMessageWithAES = async (
     message: string | undefined,
@@ -53,4 +40,30 @@ const decryptMessageWithAES = async (
 
     const decoder = new TextDecoder()
     return decoder.decode(decryptedMessage)
+}
+
+export function generateRSAKeys() {
+    // Generate RSA key pair
+    const keys = forge.pki.rsa.generateKeyPair(2048) // 2048-bit key
+
+    // Convert the keys to PEM format (base64-encoded string)
+    const publicKeyPem = forge.pki.publicKeyToPem(keys.publicKey)
+    const privateKeyPem = forge.pki.privateKeyToPem(keys.privateKey)
+
+    // Return the keys
+    return {
+        publicKey: publicKeyPem,
+        privateKey: privateKeyPem,
+    }
+}
+
+export function rsaEncrypt(plainText: string, publicKey: string) {
+    const rsa = forge.pki.publicKeyFromPem(publicKey)
+    return forge.util.encode64(rsa.encrypt(plainText, 'RSA-OAEP'))
+}
+
+export function rsaDecrypt(cipherText: string, privateKey: string) {
+    const rsa = forge.pki.privateKeyFromPem(privateKey)
+    const decoded = forge.util.decode64(cipherText)
+    return rsa.decrypt(decoded, 'RSA-OAEP')
 }
