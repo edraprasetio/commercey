@@ -10,7 +10,12 @@ import SendIcon from '../assets/icons/sendIcon.svg'
 import UserIcon from '../assets/icons/userIcon.svg'
 import Dot from '../assets/icons/dot.svg'
 import { ConversationList } from '../components/conversationList'
-import { rsaEncrypt, generateRSAKeys, rsaDecrypt } from '../utils/encryption'
+import {
+    rsaEncrypt,
+    generateRSAKeys,
+    rsaDecrypt,
+    decryptIfPossible,
+} from '../utils/encryption'
 import { getPrivateKey, getPublicKey, openDatabase } from '../utils/database'
 
 const MainContainer = styled.div`
@@ -200,23 +205,36 @@ export const Chats = () => {
 
     useEffect(() => {
         if (!selectedFriend) return
-        // console.log('Selected friend is: ', selectedFriend)
+        console.log('Selected friend is: ', selectedFriend)
 
-        fetch(
-            `http://localhost:5000/api/messages?recipient=${selectedFriend.username}`,
-            {
-                method: 'GET',
-                credentials: 'include',
-            }
-        )
-            .then((res) => {
+        const fetchMessages = async () => {
+            try {
+                const res = await fetch(
+                    `http://localhost:5000/api/messages?recipient=${selectedFriend.username}`,
+                    { method: 'GET', credentials: 'include' }
+                )
                 if (!res.ok) throw new Error('Failed to fetch messages')
-                return res.json()
-            })
-            .then(setMessages)
 
-            .catch((err) => console.error('Error fetching messages:', err))
-        // console.log('Fetched Messages are: ', messages)
+                const data: Message[] = await res.json()
+                console.log('Received data: ', data)
+                const db = await openDatabase()
+                const privateKey = await getPrivateKey(db)
+                if (!privateKey) return console.error('Private key not found')
+
+                const decrypted = await Promise.all(
+                    data.map(async (msg: Message) => ({
+                        ...msg,
+                        content: decryptIfPossible(msg.content, privateKey),
+                    }))
+                )
+
+                setMessages(decrypted)
+            } catch (err) {
+                console.error('Error:', err)
+            }
+        }
+
+        fetchMessages()
     }, [selectedFriend])
 
     useEffect(() => {
@@ -267,8 +285,6 @@ export const Chats = () => {
     const sendMessage = async () => {
         if (!selectedFriend || !newMessage.trim()) return
 
-        console.log('New Message is: ', newMessage)
-
         try {
             const db = await openDatabase()
             const recipientPublicKey = await getPublicKey(db)
@@ -285,14 +301,8 @@ export const Chats = () => {
             }
 
             const encryptedMessage = rsaEncrypt(newMessage, recipientPublicKey)
+            console.log('New Message is: ', newMessage)
             console.log('Encrypted Message is: ', encryptedMessage)
-
-            const decryptedContent = rsaDecrypt(
-                encryptedMessage,
-                receiverPrivateKey
-            )
-
-            console.log('Decrypted message is: ', decryptedContent)
 
             const res = await fetch('http://localhost:5000/api/messages/send', {
                 method: 'POST',
@@ -302,7 +312,7 @@ export const Chats = () => {
                 },
                 body: JSON.stringify({
                     recipientUsername: selectedFriend.username,
-                    content: newMessage,
+                    content: encryptedMessage,
                 }),
             })
 

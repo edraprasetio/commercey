@@ -42,6 +42,17 @@ const decryptMessageWithAES = async (
     return decoder.decode(decryptedMessage)
 }
 
+export const decryptIfPossible = (cipherText: string, privateKey: string) => {
+    try {
+        // Simple heuristic: RSA-encrypted messages are base64-encoded and often long
+        if (!cipherText || cipherText.length < 50) return cipherText
+        return rsaDecrypt(cipherText, privateKey)
+    } catch (e) {
+        console.warn('Decryption failed:', e)
+        return cipherText // Fallback to showing raw message
+    }
+}
+
 export function generateRSAKeys() {
     // Generate RSA key pair
     const keys = forge.pki.rsa.generateKeyPair(2048) // 2048-bit key

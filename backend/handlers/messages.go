@@ -62,18 +62,18 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	encryptedContent, err := utils.EncryptMessage(encryptionKey, request.Content)
-	if err != nil {
-		http.Error(w, "Failed to encrypt message", http.StatusInternalServerError)
-		return
-	}
+	// encryptedContent, err := utils.EncryptMessage(encryptionKey, request.Content)
+	// if err != nil {
+	// 	http.Error(w, "Failed to encrypt message", http.StatusInternalServerError)
+	// 	return
+	// }
 
-	fmt.Println("Encrypted message is: ", encryptedContent)
+	// fmt.Println("Encrypted message is: ", encryptedContent)
 
 	message := models.Message{
 		SenderUsername:    senderUsername,
 		RecipientUsername: request.RecipientUsername,
-		Content:           encryptedContent,
+		Content:           request.Content,
 		Timestamp:         time.Now(),
 		Read:              false,
 	}
@@ -132,14 +132,14 @@ func GetMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for i, msg := range messages {
-		decrypted, err := utils.DecryptMessage(encryptionKey, msg.Content)
-		if err != nil {
-			log.Println("Failed to decrypt message:", err)
-			continue // Keep the encrypted version if decryption fails
-		}
-		messages[i].Content = decrypted
-	}
+	// for i, msg := range messages {
+	// 	decrypted, err := utils.DecryptMessage(encryptionKey, msg.Content)
+	// 	if err != nil {
+	// 		log.Println("Failed to decrypt message:", err)
+	// 		continue // Keep the encrypted version if decryption fails
+	// 	}
+	// 	messages[i].Content = decrypted
+	// }
 
 	// Mark received messages as read
 	_, err = collection.UpdateMany(ctx,
@@ -252,17 +252,17 @@ func GetConversationList(w http.ResponseWriter, r *http.Request) {
 		// Format time difference
 		formattedTime := formatTimeAgo(message.Timestamp)
 
-		decrypted, err := utils.DecryptMessage(encryptionKey, message.Content)
-		if err != nil {
-			log.Println("Failed to decrypt message:", err)
-			continue
-		}
+		// decrypted, err := utils.DecryptMessage(encryptionKey, message.Content)
+		// if err != nil {
+		// 	log.Println("Failed to decrypt message:", err)
+		// 	continue
+		// }
 
 		previews = append(previews, ConversationPreview{
 			Username:    username,
 			FirstName:   user.FirstName,
 			LastName:    user.LastName,
-			LastMessage: decrypted, // decrypted if necessary
+			LastMessage: message.Content, // decrypted if necessary
 			Timestamp:   formattedTime,
 			RawTimestamp: message.Timestamp.Unix(),
 		})
@@ -322,16 +322,16 @@ func InitiateChat(w http.ResponseWriter, r *http.Request) {
 
 	if count == 0 {
 		// Insert a blank system message to initialize chat
-		placeholder, err := utils.EncryptMessage(encryptionKey, " ")
-		if err != nil {
-			http.Error(w, "Failed to encrypt placeholder", http.StatusInternalServerError)
-			return
-		}
+		// placeholder, err := utils.EncryptMessage(encryptionKey, " ")
+		// if err != nil {
+		// 	http.Error(w, "Failed to encrypt placeholder", http.StatusInternalServerError)
+		// 	return
+		// }
 
 		placeholderMsg := models.Message{
 			SenderUsername:    senderUsername,
 			RecipientUsername: request.RecipientUsername,
-			Content:           placeholder,
+			Content:           " ",
 			Timestamp:         time.Now(),
 			Read:              true,
 		}

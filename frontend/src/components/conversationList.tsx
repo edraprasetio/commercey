@@ -5,6 +5,8 @@ import { Card } from './home/background'
 import { Heading32, Paragraph14, SubTitle14 } from '../styles/typography'
 import UserIcon from '../assets/icons/userIcon.svg'
 import Dot from '../assets/icons/dot.svg'
+import { getPrivateKey, openDatabase } from '../utils/database'
+import { decryptIfPossible, rsaDecrypt } from '../utils/encryption'
 
 const LeftCard = styled(Card)`
     margin: unset;
@@ -93,8 +95,31 @@ export const ConversationList = ({
                     }
                 )
                 const data: ConversationPreview[] = await res.json()
-                setConversationList(data)
-                console.log(conversationList)
+                const db = await openDatabase()
+                const privateKey = await getPrivateKey(db)
+
+                if (!privateKey) {
+                    console.error('Private key not found for decryption.')
+                    return
+                }
+
+                const decryptedConversations = data.map((convo) => {
+                    let decrypted = convo.lastMessage
+                    try {
+                        decrypted = decryptIfPossible(
+                            convo.lastMessage,
+                            privateKey
+                        )
+                    } catch (e) {
+                        console.warn('Failed to decrypt message preview:', e)
+                    }
+                    return {
+                        ...convo,
+                        lastMessage: decrypted,
+                    }
+                })
+
+                setConversationList(decryptedConversations)
             } catch (err) {
                 console.error('Error fetching conversations:', err)
             }
